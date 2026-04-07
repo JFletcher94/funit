@@ -39,7 +39,7 @@ build-archive-job:
     - echo "ARCHIVE_NAME=${ARCHIVE_NAME}" >> build-${MOD_NAME}.env
   artifacts:
     reports:
-      dotenv: build.env
+      dotenv: build-${MOD_NAME}.env
     paths:
       - artifacts/${MOD_NAME}/
     expire_in: 1 day
