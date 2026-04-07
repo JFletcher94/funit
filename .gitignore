@@ -1,3 +1,2 @@
 .vscode/**
-scenarios/*/*.zip
-scenarios/*/locale
+*/scenarios/__funit__*/locale/**
