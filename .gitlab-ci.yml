@@ -1,0 +1,131 @@
+variables:
+  FACTORIO_VERSION: stable
+  MOD_NAME: funit
+  TIMEOUT: 30s
+  IMAGE_NAME: $CI_REGISTRY/$CI_PROJECT_PATH/factorio-image
+  IMAGE_TAG: $FACTORIO_VERSION-$CI_COMMIT_REF_NAME
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
+
+stages:
+  - build
+  - test
+  - deploy
+
+build-archive-job:
+  stage: build
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache git jq
+  script:
+    - MOD_VERSION=$(jq -r '.version' "$MOD_NAME/info.json")
+    - FOLDER_NAME="${MOD_NAME}_${MOD_VERSION}"
+    - ARCHIVE_NAME="${FOLDER_NAME}.zip"
+
+    - echo "Building archive ${ARCHIVE_NAME}"
+
+    - mkdir -p artifacts/${MOD_NAME}/scenarios
+    - git archive --format=zip HEAD:"${MOD_NAME}" -o "artifacts/${MOD_NAME}/${ARCHIVE_NAME}" --prefix="${FOLDER_NAME}/"
+
+    - ls -1 "${MOD_NAME}"/scenarios/ 2>/dev/null | grep "__funit__" > "artifacts/${MOD_NAME}/scenario_names.txt" || true
+    - if [ -s "artifacts/${MOD_NAME}/scenario_names.txt" ]; then
+        cat "artifacts/${MOD_NAME}/scenario_names.txt" | xargs -I {} cp -rv "${MOD_NAME}/scenarios/{}" "artifacts/${MOD_NAME}/scenarios/";
+      fi
+    - echo "ARCHIVE_NAME=${ARCHIVE_NAME}" >> build-${MOD_NAME}.env
+  artifacts:
+    reports:
+      dotenv: build-${MOD_NAME}.env
+    paths:
+      - artifacts/${MOD_NAME}/
+    expire_in: 1 day
+
+unit-test-job:
+  stage: test
+  image: docker:stable
+  services:
+    - docker:dind
+  needs:
+    - job: build-archive-job
+  before_script:
+    - apk add --no-cache bash
+  script:
+    - docker build --build-arg FACTORIO_VERSION=$FACTORIO_VERSION --build-arg USERNAME="${USERNAME}" --build-arg TOKEN="${TOKEN}" --build-arg MOD_NAME="${MOD_NAME}" --build-arg ARCHIVE_NAME="${ARCHIVE_NAME}" -t $IMAGE_NAME:$IMAGE_TAG-${MOD_NAME} .
+    - |
+      set +e
+      bash -c '
+        docker run --rm -e MOD_NAME=$MOD_NAME -e USERNAME="${USERNAME}" -e TOKEN="${TOKEN}" -e TIMEOUT=$TIMEOUT $IMAGE_NAME:$IMAGE_TAG-${MOD_NAME} 2>&1 | tee artifacts/${MOD_NAME}/funit.log
+        exit ${PIPESTATUS[0]}
+      '
+      EXIT_CODE=$?
+      set -e
+      exit $EXIT_CODE
+  timeout: 15m
+  artifacts:
+    when: always
+    paths:
+      - artifacts/${MOD_NAME}/funit.log
+    expire_in: 1 month
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+      changes:
+        - "${MOD_NAME}/**/*.lua"
+        - "${MOD_NAME}/**/*.json"
+        - "${MOD_NAME}/scenarios/__funit__*/**"
+        - .gitlab-ci.yml
+        - Dockerfile
+        - entrypoint.sh
+
+parse-results-job:
+  stage: test
+  image: ruby:3.3-alpine
+  needs:
+    - job: unit-test-job
+  before_script:
+    - apk add --no-cache wget
+  script:
+    - wget https://gitlab.com/jfletcher94/funit/-/raw/master/scripts/parse_funit_log.rb
+    - ruby parse_funit_log.rb artifacts/${MOD_NAME}/funit.log junit-report-${MOD_NAME}.xml
+  artifacts:
+    when: always
+    paths:
+      - junit-report-*.xml
+    reports:
+      junit: junit-report-*.xml
+    expire_in: 1 month
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+      changes:
+        - "${MOD_NAME}/**/*.lua"
+        - "${MOD_NAME}/**/*.json"
+        - "${MOD_NAME}/scenarios/__funit__*/**"
+        - .gitlab-ci.yml
+        - Dockerfile
+        - entrypoint.sh
+
+deploy-job:
+  stage: deploy
+  image: registry.gitlab.com/gitlab-org/cli:latest
+  needs:
+    - job: build-archive-job
+      artifacts: true
+    - job: parse-results-job
+  before_script:
+    - apk add --no-cache jq curl
+  script:
+    - |
+      MOD_VERSION=$(jq -r '.version' ${MOD_NAME}/info.json 2>/dev/null)
+      MOD_ZIP=artifacts/${MOD_NAME}/${MOD_NAME}_${MOD_VERSION}.zip
+      MOD_FILENAME=$(basename "$MOD_ZIP")
+      PACKAGE_BASE_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${MOD_NAME}/${MOD_VERSION}"
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file "${MOD_ZIP}" "${PACKAGE_BASE_URL}/${MOD_FILENAME}"
+  rules:
+     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE != "schedule"
+       changes:
+        - "${MOD_NAME}/info.json"
