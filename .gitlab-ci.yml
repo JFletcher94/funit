@@ -31,7 +31,7 @@ build-archive-job:
 
     - mkdir -p artifacts/${MOD_NAME}/scenarios
     - mv "${MOD_NAME}" "${FOLDER_NAME}"
-    - git archive --format=zip HEAD -o "artifacts/${MOD_NAME}/${ARCHIVE_NAME}" -- "${FOLDER_NAME}/"
+    - git archive --format=zip HEAD -o "artifacts/${MOD_NAME}/${ARCHIVE_NAME}" -- "${FOLDER_NAME}/*"
     - mv "${FOLDER_NAME}" "${MOD_NAME}"
 
     - ls -1 scenarios/ 2>/dev/null | grep "__funit__" > "artifacts/${MOD_NAME}/scenario_names.txt" || true
