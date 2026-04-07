@@ -17,8 +17,6 @@ ENV ARCHIVE_NAME=${ARCHIVE_NAME}
 
 COPY "$MOD_NAME"/config/* /
 
-RUN ls /
-
 RUN mkdir -p "$CONFIG"
 RUN mkdir -p "$MODS"
 RUN envsubst < /server-settings.json > "$CONFIG"/server-settings.json

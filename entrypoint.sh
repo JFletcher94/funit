@@ -74,7 +74,6 @@ else
     EXIT_CODE=0
     export UPDATE_MODS_ON_START="true"
     export UPDATE_IGNORE="${MOD_NAME}"
-    export MODS
     echo "____SCENARIO____: freeplay"
     echo "Using default mod-list.json"
     cp "/$ARCHIVE_NAME" "$MODS"/
