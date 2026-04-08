@@ -1,4 +1,4 @@
 config                    export-ignore
 config/**                 export-ignore
-scenarios/__funit__*      export-ignore
-scenarios/__funit__*/**   export-ignore
+*/scenarios/__funit__*      export-ignore
+*scenarios/__funit__*/**   export-ignore
