@@ -3,8 +3,48 @@
 ANY_FAILURE=0
 EARLY_SUCCESS_FLAG="/funit_early_success.$$"
 
+mkdir -p /factorio/saves
+
+# TODO: Move saves to $SAVES
+if [ -s "save_names.txt" ]; then
+    for fn in $(cat save_names.txt); do
+        EXIT_CODE=0
+        UPDATE_IGNORE=""
+        echo "____SCENARIO____: $fn"
+
+        export SAVE_NAME=$fn
+        export EARLY_SUCCESS_FLAG
+        timeout -f "$TIMEOUT" bash -c '/opt/factorio/bin/x64/factorio \
+            --start-server "$SAVE_NAME" \
+            --sync-mods "$SAVE_NAME" \
+            --until-tick 3600 \
+            --mod-directory "$MODS" \
+            --server-settings "$CONFIG/server-settings.json" 2>&1 | \
+        while IFS= read -r line; do
+            printf "%s\\n" "$line"
+            case "$line" in
+                (*__FUNIT__*====END====*)
+                    echo "FUNIT end signal detected"
+                    touch "$EARLY_SUCCESS_FLAG"
+                    pkill -TERM -f ".*factorio.*--start-server-load-scenario" 2>/dev/null || true
+                    exit 0
+                    ;;
+            esac
+        done
+        exit ${PIPESTATUS[0]}'
+
+        EXIT_CODE=$?
+        if [ -f "$EARLY_SUCCESS_FLAG" ]; then
+            rm -f "$EARLY_SUCCESS_FLAG"
+            EXIT_CODE=0
+        fi
+        if [ "$EXIT_CODE" -ne 124 ] && [ "$EXIT_CODE" -ne 0 ]; then
+            ANY_FAILURE=$EXIT_CODE
+        fi
+    done
+fi
+
 if [ -s "scenario_names.txt" ]; then
-    mkdir -p /factorio/saves
     mkdir -p /mods_cache
     cp "/$ARCHIVE_NAME" /mods_cache/
     for fn in $(cat scenario_names.txt); do
@@ -59,8 +99,8 @@ if [ -s "scenario_names.txt" ]; then
                     ;;
             esac
         done
-        exit ${PIPESTATUS[0]}
-        '
+        exit ${PIPESTATUS[0]}'
+
         EXIT_CODE=$?
         if [ -f "$EARLY_SUCCESS_FLAG" ]; then
             rm -f "$EARLY_SUCCESS_FLAG"
@@ -70,7 +110,9 @@ if [ -s "scenario_names.txt" ]; then
             ANY_FAILURE=$EXIT_CODE
         fi
     done
-else
+fi
+
+if [ ! -s "scenario_names.txt" ] && [ ! -s "save_names.txt" ]; then
     EXIT_CODE=0
     export UPDATE_MODS_ON_START="true"
     export UPDATE_IGNORE="${MOD_NAME}"
