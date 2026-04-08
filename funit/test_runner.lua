@@ -1,19 +1,17 @@
 
 local runner = {}
 runner.tests = {}
+runner.log_prefix = "__FUNIT__"
 runner.test_success = "__SUCCESS__"
 runner.test_failure = "__FAILURE__"
 runner.test_error = "__ERROR__"
 
 runner.register = function(mod_name)
-    runner.log_prefix = "__FUNIT__"..mod_name
-    if not script.active_mods[mod_name] then
-        runner.error(mod_name.." not active")
-    end
-
+    runner.mod_name = mod_name
     runner.tests = {}
     runner.before_each(nil)
     runner.after_each(nil)
+    runner.assert(script.active_mods[mod_name] ~= nil, mod_name.." not active")
 end
 
 runner.before_each = function(func)
@@ -28,16 +26,20 @@ runner.test = function(name, test)
     runner.tests[name] = test
 end
 
+runner.log = function(message)
+    log(runner.log_prefix..(runner.mod_name or "nil")..message)
+end
+
 runner.succeed = function(message)
-    log(runner.log_prefix..runner.test_success..message)
+    runner.log(runner.test_success..message)
 end
 
 runner.fail = function(message)
-    log(runner.log_prefix..runner.test_failure..message)
+    runner.log(runner.test_failure..message)
 end
 
 runner.error = function(message)
-    log(runner.log_prefix..runner.test_error..message)
+    runner.log(runner.test_error..message)
 end
 
 runner.assert = function(bool, message)
@@ -69,20 +71,12 @@ runner.run_and_verify = function(func, message)
 end
 
 runner.run = function()
-    if not runner.log_prefix then
-        runner.log_prefix = "__FUNIT__nil"
-        runner.error("No mod registered")
-        runner.log_prefix = nil
-        return
-    end
+    runner.assert(runner.mod_name ~= nil, "No mod registered")
 
     local tests_count = table_size(runner.tests)
-    if tests_count == 0 then
-        runner.error("No tests")
-        return
-    end
+    runner.assert(tests_count > 0, "No tests")
 
-    log(runner.log_prefix.."====BEGIN "..tostring(tests_count).." TESTS====")
+    runner.log("====BEGIN "..tostring(tests_count).." TESTS====")
 
     for name, test in pairs(runner.tests) do
         local status = runner.run_and_verify(runner.before_each_func, name.." (before_each)")
@@ -104,7 +98,7 @@ runner.run = function()
         ::continue::
     end
 
-    log(runner.log_prefix.."====END====")
+    runner.log("====END====")
 end
 
 script.on_event(defines.events.on_game_created_from_scenario, runner.run)
