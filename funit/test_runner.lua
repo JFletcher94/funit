@@ -14,8 +14,6 @@ runner.register = function(mod_name)
     runner.mod_name = mod_name
     runner.tests = {}
     runner.test_names = {}
-    runner.test_idx = 1
-    runner.test_stage = runner.BEGIN
     runner.before_each(nil)
     runner.after_each(nil)
     runner.assert(script.active_mods[mod_name] ~= nil, mod_name.." not active")
@@ -162,8 +160,10 @@ end
 
 runner.run = function()
     runner.assert(runner.mod_name ~= nil, "No mod registered")
-    runner.tests_count = table_size(runner.tests)
-    runner.assert(runner.test_idx <= runner.tests_count, "No tests")
+    runner.tests_count = table_size(runner.test_names)
+    runner.assert(runner.tests_count > 0, "No tests")
+    runner.test_idx = 1
+    runner.current_stage = runner.BEGIN
     runner.log("====BEGIN "..tostring(runner.tests_count).." TESTS====")
     runner.run_next_test()
 end
