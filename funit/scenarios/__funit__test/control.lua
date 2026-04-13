@@ -8,3 +8,12 @@ runner.test(
         runner.assert(true, "runner.assert")
     end
 )
+runner.test(
+    "Test after_n_ticks_do",
+    function()
+        local tick = game.tick
+        runner.after_n_ticks_do(30, function()
+            runner.assert(game.tick == tick + 30, "[tick] expected: "..tostring(tick + 30).."; actual: "..tostring(game.tick))
+        end)
+    end
+)
