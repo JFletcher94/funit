@@ -9,7 +9,8 @@ mkdir -p /factorio/saves
 if [ -s "save_names.txt" ]; then
     for fn in $(cat save_names.txt); do
         EXIT_CODE=0
-        UPDATE_IGNORE=""
+        export UPDATE_MODS_ON_START="true"
+        export UPDATE_IGNORE="${MOD_NAME}"
         echo "____SCENARIO____: $fn"
 
         export SAVE_NAME=$fn
