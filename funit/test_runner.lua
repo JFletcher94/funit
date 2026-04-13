@@ -101,5 +101,8 @@ runner.run = function()
     runner.log("====END====")
 end
 
-script.on_event(defines.events.on_game_created_from_scenario, runner.run)
+script.on_event(defines.events.on_tick, function()
+    runner.run()
+    script.on_event(defines.events.on_tick, nil)
+end)
 return runner

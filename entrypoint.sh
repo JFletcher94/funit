@@ -17,7 +17,6 @@ if [ -s "save_names.txt" ]; then
         timeout -f "$TIMEOUT" bash -c '/opt/factorio/bin/x64/factorio \
             --start-server "$SAVE_NAME" \
             --sync-mods "$SAVE_NAME" \
-            --until-tick 3600 \
             --mod-directory "$MODS" \
             --server-settings "$CONFIG/server-settings.json" 2>&1 | \
         while IFS= read -r line; do
@@ -46,7 +45,7 @@ fi
 
 if [ -s "scenario_names.txt" ]; then
     mkdir -p /mods_cache
-    cp "/$ARCHIVE_NAME" /mods_cache/
+    cp /*.zip /mods_cache/
     for fn in $(cat scenario_names.txt); do
         EXIT_CODE=0
         UPDATE_IGNORE=""

@@ -3,7 +3,7 @@ local runner = require("__funit__.test_runner")
 
 runner.register("funit")
 runner.test(
-    "self-test",
+    "Self-test",
     function()
         runner.assert(true, "runner.assert")
     end
