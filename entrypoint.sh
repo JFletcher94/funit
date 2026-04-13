@@ -44,6 +44,7 @@ if [ -s "save_names.txt" ]; then
         if [ "$EXIT_CODE" -ne 124 ] && [ "$EXIT_CODE" -ne 0 ]; then
             ANY_FAILURE=$EXIT_CODE
         fi
+        sleep 1
     done
 fi
 
@@ -112,6 +113,7 @@ if [ -s "scenario_names.txt" ]; then
         if [ "$EXIT_CODE" -ne 124 ] && [ "$EXIT_CODE" -ne 0 ]; then
             ANY_FAILURE=$EXIT_CODE
         fi
+        sleep 1
     done
 fi
 
