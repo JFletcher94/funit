@@ -9,9 +9,12 @@ mkdir -p /factorio/saves
 if [ -s "save_names.txt" ]; then
     for fn in $(cat save_names.txt); do
         EXIT_CODE=0
-        export UPDATE_MODS_ON_START="true"
-        export UPDATE_IGNORE="${MOD_NAME}"
         echo "____SCENARIO____: $fn"
+
+        cp "/$ARCHIVE_NAME" "$MODS"/
+        cp "/mod-list.json" "$MODS"/
+        export UPDATE_IGNORE="${MOD_NAME}"
+        /docker-update-mods.sh
 
         export SAVE_NAME=$fn
         export EARLY_SUCCESS_FLAG
@@ -26,7 +29,7 @@ if [ -s "save_names.txt" ]; then
                 (*__FUNIT__*====END====*)
                     echo "FUNIT end signal detected"
                     touch "$EARLY_SUCCESS_FLAG"
-                    pkill -TERM -f ".*factorio.*--start-server-load-scenario" 2>/dev/null || true
+                    pkill -TERM -f ".*factorio.*--start-server" 2>/dev/null || true
                     exit 0
                     ;;
             esac
