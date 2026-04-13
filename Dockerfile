@@ -15,13 +15,14 @@ ENV USERNAME=${USERNAME}
 ENV TOKEN=${TOKEN}
 ENV ARCHIVE_NAME=${ARCHIVE_NAME}
 
-COPY "$MOD_NAME"/config/* /
+COPY "$MOD_NAME"/test/* /
 
 RUN mkdir -p "$CONFIG"
 RUN mkdir -p "$MODS"
 RUN envsubst < /server-settings.json > "$CONFIG"/server-settings.json
 
 COPY "artifacts/${MOD_NAME}/${ARCHIVE_NAME}" /
+COPY artifacts/"$MOD_NAME"/save_names.txt /save_names.txt
 COPY artifacts/"$MOD_NAME"/scenario_names.txt /scenario_names.txt
 COPY artifacts/"$MOD_NAME"/scenarios /factorio/scenarios
 COPY entrypoint.sh /
