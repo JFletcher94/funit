@@ -94,7 +94,7 @@ parse-results-job:
   before_script:
     - apk add --no-cache wget
   script:
-    - wget https://gitlab.com/jfletcher94/funit/-/raw/master/scripts/parse_funit_log.rb
+    - 'wget --header="User-Agent: Mozilla/5.0" https://gitlab.com/jfletcher94/funit/-/raw/master/scripts/parse_funit_log.rb'
     - ruby parse_funit_log.rb artifacts/${MOD_NAME}/funit.log junit-report-${MOD_NAME}.xml
   artifacts:
     when: always
