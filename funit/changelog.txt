@@ -1,4 +1,8 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.1
+  Bugfixes:
+    - Fixed skipping all remaining tests after any failure.
+---------------------------------------------------------------------------------------------------
 Version: 0.2.0
   Features:
     - New test runner function, 'after_n_ticks_do': supports test logic that requires game evolution over multiple ticks.
