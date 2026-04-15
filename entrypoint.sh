@@ -89,8 +89,9 @@ if [ -s "scenario_names.txt" ]; then
         export SCENARIO_NAME=$fn
         export EARLY_SUCCESS_FLAG
         timeout -f "$TIMEOUT" bash -c '/opt/factorio/bin/x64/factorio \
-            --load-scenario "$SCENARIO_NAME" \
-            --mod-directory "$MODS" 2>&1 | \
+            --start-server-load-scenario "$SCENARIO_NAME" \
+            --mod-directory "$MODS" \
+            --server-settings "$CONFIG/server-settings.json" 2>&1 | \
         while IFS= read -r line; do
             printf "%s\\n" "$line"
             case "$line" in
