@@ -12,15 +12,15 @@ if [ -s "save_names.txt" ]; then
         echo "____SCENARIO____: $fn"
 
         cp "/$ARCHIVE_NAME" "$MODS"/
-        cp "/mod-list.json" "$MODS"/
-        export UPDATE_IGNORE="${MOD_NAME}"
-        /docker-update-mods.sh
+        /opt/factorio/bin/x64/factorio \
+            --sync-mods "$SAVE_NAME" \
+            --mod-directory "$MODS" \
+            --server-settings "$CONFIG/server-settings.json
 
         export SAVE_NAME=$fn
         export EARLY_SUCCESS_FLAG
         timeout -f "$TIMEOUT" bash -c '/opt/factorio/bin/x64/factorio \
             --start-server "$SAVE_NAME" \
-            --sync-mods "$SAVE_NAME" \
             --mod-directory "$MODS" \
             --server-settings "$CONFIG/server-settings.json" 2>&1 | \
         while IFS= read -r line; do
