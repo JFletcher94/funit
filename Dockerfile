@@ -20,6 +20,7 @@ COPY "$MOD_NAME"/test/* /
 RUN mkdir -p "$CONFIG"
 RUN mkdir -p "$MODS"
 RUN envsubst < /server-settings.json > "$CONFIG"/server-settings.json
+RUN envsubst < /player-data.json > "$CONFIG"/player-data.json
 
 COPY "artifacts/${MOD_NAME}/${ARCHIVE_NAME}" /
 COPY artifacts/"$MOD_NAME"/save_names.txt /save_names.txt
