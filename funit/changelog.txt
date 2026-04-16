@@ -2,6 +2,7 @@
 Version: 0.3.0
   Features:
     - Improved Lua documentation and types.
+    - Messages logged through test_runner are now printed to player as well.
 ---------------------------------------------------------------------------------------------------
 Version: 0.2.1
   Bugfixes:
