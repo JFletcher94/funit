@@ -15,7 +15,7 @@ if [ -s "save_names.txt" ]; then
         /opt/factorio/bin/x64/factorio \
             --sync-mods "$SAVE_NAME" \
             --mod-directory "$MODS" \
-            --server-settings "$CONFIG/server-settings.json
+            --server-settings "$CONFIG/server-settings.json"
 
         export SAVE_NAME=$fn
         export EARLY_SUCCESS_FLAG
