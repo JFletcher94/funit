@@ -200,7 +200,7 @@ runner._run_next_test = function()
 
     ::continue::
     runner._status = nil
-    if runner.test_idx == runner.tests_count then
+    if runner._test_idx == runner._tests_count then
         runner.log("====END====")
         return
     end
