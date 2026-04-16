@@ -1,4 +1,8 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.3.0
+  Features:
+    - Improved Lua documentation and types.
+---------------------------------------------------------------------------------------------------
 Version: 0.2.1
   Bugfixes:
     - Fixed skipping all remaining tests after any failure.

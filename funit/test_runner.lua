@@ -79,7 +79,7 @@ runner.assert = function(bool, message)
         return true
     else
         log(debug.traceback())
-        error({is_test_runner_assert = true, message = message or ""})
+        error({is_test_runner_assert = true, message = message or "nil"})
     end
 end
 
