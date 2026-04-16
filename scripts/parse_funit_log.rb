@@ -11,7 +11,7 @@ current_scenario = nil
 File.readlines(log_file).each do |line|
   line = line.strip
 
-  if match = line.match(/__FUNIT__([^=]+)====BEGIN (\d+) TESTS====/)
+  if match = line.match(/__FUNIT__([^=]+)__====BEGIN (\d+) TESTS====/)
     current_mod = match[1].strip
     expected_count = match[2].to_i
     expected_tests[current_mod] ||= 0
@@ -21,6 +21,7 @@ File.readlines(log_file).each do |line|
 
   if match = line.match(/____SCENARIO____:\s*(.+)/)
     current_scenario = match[1].strip
+    next
   end
 
   if match = line.match(/__FUNIT__([^_]+)__([A-Z]+)__(.+)/)
@@ -35,6 +36,7 @@ File.readlines(log_file).each do |line|
       status:   status,
       time:     0.0
     }
+    next
   end
 end
 

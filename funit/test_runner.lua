@@ -7,9 +7,9 @@ local runner = {}
 -- ============================================================================
 
 runner._log_prefix = "__FUNIT__"
-runner._test_success = "__SUCCESS__"
-runner._test_failure = "__FAILURE__"
-runner._test_error = "__ERROR__"
+runner._test_success = "SUCCESS__"
+runner._test_failure = "FAILURE__"
+runner._test_error = "ERROR__"
 
 -- Test stages
 runner.BEGIN = 0
@@ -86,7 +86,8 @@ end
 --- Log a message in the FUnit logging format.
 --- @param message string The message to log
 runner.log = function(message)
-    log(runner._log_prefix..(runner._mod_name or "nil")..message)
+    game.print({"mod-message.funit-log", message}, {game_state = false})
+    log(runner._log_prefix..(runner._mod_name or "nil").."__"..message)
 end
 
 -- ============================================================================
