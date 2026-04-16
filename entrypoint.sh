@@ -13,7 +13,7 @@ if [ -s "save_names.txt" ]; then
 
         cp "/$ARCHIVE_NAME" "$MODS"/
         /opt/factorio/bin/x64/factorio \
-            --sync-mods "$SAVE_NAME" \
+            --sync-mods "$fn" \
             --mod-directory "$MODS" \
             --server-settings "$CONFIG/server-settings.json"
 
