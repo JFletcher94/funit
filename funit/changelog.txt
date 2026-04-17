@@ -1,4 +1,8 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.3.1
+  Minor Features:
+    - New test runner function, 'on_event_do': supports test logic that depends on in-game events.
+---------------------------------------------------------------------------------------------------
 Version: 0.3.0
   Features:
     - Improved Lua documentation and types.
