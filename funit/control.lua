@@ -1,4 +1,4 @@
-if game.active_mods["funit"] then
+if script.active_mods["funit"] then
     local mock = require("__funit__.mock")
     mock.register_mod("funit")
 end
