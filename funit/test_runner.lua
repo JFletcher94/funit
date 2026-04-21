@@ -158,7 +158,10 @@ runner._run_and_verify = function(func, message)
         return true
     end
 
-    local status, err = xpcall(func, function() log(debug.traceback()) end)
+    local status, err = xpcall(func, function(error)
+        log(debug.traceback())
+        return error
+    end)
     -- If a nested call fails, status will still be true but runner._status[runner._test_idx] will be false
     if runner._status[runner._test_idx] == false then
         return false
@@ -179,7 +182,6 @@ runner._run_and_verify = function(func, message)
     elseif err.is_test_runner_assert then
         runner._fail(message.."__: "..err.message)
     else
-        log(debug.traceback("FUnit assertion failed: "..(message or "nil"), 2))
         runner._error(message.."__: "..err)
     end
 end
