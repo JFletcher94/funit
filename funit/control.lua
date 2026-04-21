@@ -1,6 +1,6 @@
 if script.active_mods["funit"] then
     local mock = require("__funit__.mock")
-    mock.register_mod("funit")
+    mock.register()
 end
 
 local event_called_count = 0
