@@ -4,6 +4,7 @@ local mock = {}
 --- TODO: doc
 --- (needed because the mod itself needs to call function)
 mock.register = function()
+    log("Registering '"..script.mod_name.."' with mock")
     if mock.is_mod_registered(script.mod_name) then
         return
     end
