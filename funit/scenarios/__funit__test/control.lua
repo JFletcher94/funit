@@ -2,6 +2,8 @@
 local runner = require("__funit__.test_runner")
 runner.register("funit")
 
+local mock = require("__funit__.mock")
+
 runner.test("Test after_n_ticks_do", function()
     local tick = game.tick
     local nesting_level = 0
@@ -92,4 +94,12 @@ runner.test("Test after_n_ticks_on_event_do", function()
         entity1.destroy{raise_destroy = true}
     end)
     runner.assert(nesting_level == 0, "nesting: "..tostring(nesting_level))
+end)
+
+runner.test("Test mock_event", function()
+    runner.assert(mock.is_mod_registered("funit"), "funit not registered with mock!")
+    local event_called_count_0 = remote.call("funit", "get_event_called_count")
+    mock.mock_event({ name = defines.events.script_raised_built })
+    local event_called_count_1 = remote.call("funit", "get_event_called_count")
+    runner.assert(event_called_count_1 == event_called_count_0 + 1, tostring(event_called_count_0).." ~= "..tostring(event_called_count_1))
 end)
