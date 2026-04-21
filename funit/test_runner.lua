@@ -22,6 +22,7 @@ runner.AFTER_EACH = 3
 -- ============================================================================
 
 --- Register a mod for testing. Must be called once before adding tests.
+---
 --- @param mod_name string The internal name of the mod (must be active)
 runner.register = function(mod_name)
     runner._mod_name = mod_name
@@ -35,18 +36,21 @@ runner.register = function(mod_name)
 end
 
 --- Set a function to run before each test.
+---
 --- @param func? fun() Function to run before each test (or nil to disable)
 runner.before_each = function(func)
     runner.before_each_func = func
 end
 
 --- Set a function to run after each test.
+---
 --- @param func? fun() Function to run after each test (or nil to disable)
 runner.after_each = function(func)
     runner.after_each_func = func
 end
 
 --- Register a test function.
+---
 --- @param name string Unique name for the test
 --- @param test fun() The test function to execute
 runner.test = function(name, test)
@@ -69,7 +73,10 @@ runner.after_n_ticks_do = function(ticks, action)
     script.on_event(defines.events.on_tick, runner._resume_test)
 end
 
---- TODO: doc
+--- Perform an action upon an event being raised.
+--- Can be called from inside a test or before/after hooks.
+--- To chain actions together, nest calls of this function.
+--- Non-nested invocations will overwrite each other.
 ---
 --- @param event LuaEventType The event to invoke the handler on
 --- @param action fun() The handler for the event
@@ -105,6 +112,7 @@ runner.assert = function(bool, message)
 end
 
 --- Log a message in the FUnit logging format.
+---
 --- @param message string The message to log
 runner.log = function(message)
     game.print({"mod-message.funit-log", message}, {game_state = false})
@@ -116,23 +124,27 @@ end
 -- ============================================================================
 
 --- Log test success message in FUnit logging format.
+---
 --- @param message string The success message
 runner._succeed = function(message)
     runner.log(runner._test_success..message)
 end
 
 --- Log test failure message in FUnit logging format.
+---
 --- @param message string The failure message
 runner._fail = function(message)
     runner.log(runner._test_failure..message)
 end
 
 --- Log test error message in FUnit logging format.
+---
 --- @param message string The error message
 runner._error = function(message)
     runner.log(runner._test_error..message)
 end
 
+--- Timeout handler for `on_event_do`
 runner._check_for_timeout = function()
     for event_id, timeout_tick in pairs(runner._registered_events) do
         if timeout_tick ~= 0 and timeout_tick < game.tick then
@@ -146,6 +158,7 @@ runner._check_for_timeout = function()
 end
 
 --- Safely execute a function and handle success/failure.
+---
 --- @param func? fun() Function to execute
 --- @param message string Message used when logging failure/error
 runner._run_and_verify = function(func, message)
