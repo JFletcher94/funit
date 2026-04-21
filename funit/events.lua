@@ -7,14 +7,8 @@ events.mock_event = function(event_data)
     -- TODO: validation
     events._setup_mocks()
     for interface, _ in pairs(events._mocks) do
-        local handler = remote.call(interface, "get_event_handler", event_data.name)
-        if not handler then
-            goto continue
-        end
-
         event_data.tick = event_data.tick or game.tick
-        handler(event_data)
-        ::continue::
+        remote.call(interface, "call_event_handler", event_data)
     end
 end
 
