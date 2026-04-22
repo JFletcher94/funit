@@ -140,7 +140,7 @@ upload-readme-job:
   stage: upload
   needs:
     - job: build-archive-job
-  before-script:
+  before_script:
     - apk add --no-cache curl
   script:
     - |
