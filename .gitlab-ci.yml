@@ -148,7 +148,7 @@ upload-readme-job:
       curl -X POST \
       -H "Authorization: Bearer ${API_KEY}" \
       -F "mod=${MOD_NAME}" \
-      -F "description=@${MOD_NAME}/README.md;type=text/markdown" \
+      -F "description=<${MOD_NAME}/README.md" \
       https://mods.factorio.com/api/v2/mods/edit_details
   rules:
      - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE != "schedule"
