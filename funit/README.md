@@ -11,7 +11,7 @@ Examples from my other mods:
 
 ## FUnit Test Runner
 
-Create a custom scenario, and in the scenario's `control.lua`, and add a `test_runner`. Then register the mod and its tests. All tests will run automatically when a new game is created from the scenario, or when a saved game of the scenario is loaded.
+Create a custom scenario, and in the scenario's `control.lua`, and add a `test_runner`. Then register the mod and its tests. All tests will run automatically when a new game is created from the scenario, or when a saved game of the scenario is loaded. Also see [`test_runner.lua`](https://gitlab.com/jfletcher94/funit/-/blob/master/funit/test_runner.lua) for more.
 
 ### Basic Functions
 
@@ -81,17 +81,38 @@ runner.test(
 FUnit uses a specific logging format; use FUnit's `log` function to print a message in this format. Messages are logged both to the in-game console and to Factorio's log (i.e., stdout/factorio-current.log):
 
 ```lua
-    runner.test(
-        "My test",
-        function()
-            local surface = game.get_surface(1)
-            runner.assert(surface, "Surface 1 not found!")
-            runner.log("Using surface: "..surface.name)
-        end
-    )
+runner.test(
+    "My test",
+    function()
+        local surface = game.get_surface(1)
+        runner.assert(surface, "Surface 1 not found!")
+        runner.log("Using surface: "..surface.name)
+    end
+)
 ```
 
 ### Advanced Functions
 
+Sometimes test logic might require letting the game run, and waiting for a certain condition to be met before continuing test logic execution. FUnit includes several functions for this purpose.
+
 #### `after_n_ticks_do`
+
+To wait a fixed number of game ticks before executing some test logic, use `after_n_ticks_do`:
+
+```lua
+runner.test(
+    "My test",
+    function()
+        for _, entity in pairs(entities) do
+            runner.assert(entity.valid, "Entity invalid!")
+            entity.order_deconstruction("player")
+        end
+        runner.after_n_ticks_do(600, function()
+            for _, entity in pairs(entities) do
+                runner.assert(not entity.valid, "Entity not deconstructed!")
+            end
+        end)
+    end
+)
+```
 

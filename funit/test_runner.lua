@@ -95,6 +95,13 @@ runner.on_event_do = function(event, action, filters, timeout_ticks)
     end, filters)
 end
 
+--- TODO
+---
+--- @param timeout_ticks integer? Fail the test if condition not met after this many ticks; must be > 0
+runner.after_condition_met_do(predicate, timeout_ticks)
+    runner.assert(false, "Not yet implemented!")
+end
+
 --- Assertion function for use inside tests and hooks.
 --- If the condition is false, the test fails immediately with the given message.
 ---
