@@ -91,15 +91,15 @@ runner.on_event_do = function(event, action, filters, timeout_ticks)
     script.on_event(event, function()
         runner._registered_events[event_id] = nil
         script.on_event(event, nil)
-        runner._run_and_verify(action, runner._test_names[runner._test_idx].." ("..event_id..")")
+        runner._run_and_verify(action(event), runner._test_names[runner._test_idx].." ("..event_id..")")
     end, filters)
 end
 
 --- TODO
 ---
 --- @param timeout_ticks integer? Fail the test if condition not met after this many ticks; must be > 0
-runner.after_condition_met_do(predicate, timeout_ticks)
-    runner.assert(false, "Not yet implemented!")
+runner.after_condition_met_do = function(predicate, timeout_ticks)
+    assert(false, "Not yet implemented!")
 end
 
 --- Assertion function for use inside tests and hooks.
