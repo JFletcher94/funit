@@ -1,3 +1,5 @@
+[![foundrygg.com](https://img.shields.io/badge/foundrygg-4a1402?style=for-the-badge&logo=vercel&logoColor=white)](https://foundrygg.com) [![Discord](https://img.shields.io/badge/Discord-%235865F2.svg?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/VuVhYUBbWE) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/jfletcher94%2Ffunit?branch=master&style=for-the-badge&logo=gitlab)](https://gitlab.com/jfletcher94/funit/-/pipelines)
+
 # FUnit
 
 FUnit is a utility mod to help make testing and project automation easier for other Factorio mods. It does nothing on its own.
@@ -211,8 +213,41 @@ An easy way to get fake event data is to copy it from a real event, e.g. by temp
 * Remove the `tick` field (if absent, the event mocker populates it with the correct game tick).
 * Lua objects (e.g. `LuaEntity`) cannot be copied; if they're needed in the event data, they need to be provided another way (e.g. with `surface.find_entities()`).
 
-## Tips for Using FUnit
+## Miscellaneous
 
-[designed for headless CI]
+### Tips
 
-[use remote instead of importing mod's stateful files]
+#### Use `remote` to Interact with Your Mod
+
+In the [runtime stage](https://lua-api.factorio.com/latest/auxiliary/data-lifecycle.html), each mod lives in its own separate Lua environment. This means that, even though you can `require` files from another mod, state is not shared. For testing something like a stateless helper function this doesn't actually matter; but for testing any stateful function of your mod, _you should not call the function directly_ from within your test. Instead, you need to use a [remote interface](https://lua-api.factorio.com/latest/classes/LuaRemote.html).
+
+Remote interfaces are what allow mods to interact with each other. First, register an interface in your mod's `control.lua`:
+
+```lua
+if script.active_mods["funit"] then -- If a remote interface is only for testing, don't register it unless FUnit is active
+    remote.add_interface("my-mod-funit", {
+        my_function = my_function
+    })
+end
+```
+
+Then you can call it in your test scenario's `control.lua`:
+
+```lua
+runner.test(
+    "My test",
+    function()
+        remote.call("my-mod-funit", "my_function", arg1, arg2)
+    end
+)
+```
+
+This will cause `my_function` to run _within your mod's Lua enviornment_.
+
+#### Use `LuaEntity.name_tag`
+
+In the map editor, you can assign a [name tag](https://lua-api.factorio.com/latest/classes/LuaEntity.html#name_tag) to any entity. An entity's name tag is accessible at runtime as the `LuaEntity.name_tag` field. Name tags have enforced uniqueness, so you can use them reliably get a specific entity.
+
+### Disclaimer
+
+Funit was designed for my usecase, which is mainly running automated tests within a CI environment using a headless Factorio server. I've tried to make the functionality flexible (and more features are still planned), but the project's scope is still relatively narrow. Some of the features (e.g. the logging format) are coupled to [other](https://gitlab.com/jfletcher94/funit/-/blob/master/.gitlab-ci.yml) [parts](https://gitlab.com/jfletcher94/funit/-/blob/master/Dockerfile) of the [repo](https://gitlab.com/jfletcher94/funit/-/blob/master/entrypoint.sh) which are not part of the mod itself.
