@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.4.1
+  Minor Features:
+    - 'on_event_do' will now pass event data to action.
+    - Added documentation to README
+---------------------------------------------------------------------------------------------------
 Version: 0.4.0
   Features:
     - Added event mocking API.

@@ -1,3 +1,5 @@
+[![foundrygg.com](https://img.shields.io/badge/foundrygg-4a1402?style=for-the-badge&logo=vercel&logoColor=white)](https://foundrygg.com) [![Discord](https://img.shields.io/badge/Discord-%235865F2.svg?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/VuVhYUBbWE) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/jfletcher94%2Ffunit?branch=master&style=for-the-badge&logo=gitlab)](https://gitlab.com/jfletcher94/funit/-/pipelines)
+
 ## [Funit](funit/)
 
 Funit is a unit testing framework for Factorio mods. Factorio is automation game, after all—stop hand-crafting your mods!

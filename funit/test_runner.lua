@@ -91,8 +91,15 @@ runner.on_event_do = function(event, action, filters, timeout_ticks)
     script.on_event(event, function()
         runner._registered_events[event_id] = nil
         script.on_event(event, nil)
-        runner._run_and_verify(action, runner._test_names[runner._test_idx].." ("..event_id..")")
+        runner._run_and_verify(action(event), runner._test_names[runner._test_idx].." ("..event_id..")")
     end, filters)
+end
+
+--- TODO
+---
+--- @param timeout_ticks integer? Fail the test if condition not met after this many ticks; must be > 0
+runner.after_condition_met_do = function(predicate, timeout_ticks)
+    assert(false, "Not yet implemented!")
 end
 
 --- Assertion function for use inside tests and hooks.
@@ -106,8 +113,8 @@ runner.assert = function(bool, message)
     if bool then
         return true
     else
-        local traceback = debug.traceback("FUnit assertion failed: "..(message or "nil"), 2)
-        error({is_test_runner_assert = true, message = message or "nil", traceback = traceback})
+        local traceback = debug.traceback("FUnit assertion failed: "..tostring(message), 2)
+        error({is_test_runner_assert = true, message = tostring(message), traceback = traceback})
     end
 end
 
