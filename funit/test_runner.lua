@@ -106,8 +106,8 @@ runner.assert = function(bool, message)
     if bool then
         return true
     else
-        local traceback = debug.traceback("FUnit assertion failed: "..(message or "nil"), 2)
-        error({is_test_runner_assert = true, message = message or "nil", traceback = traceback})
+        local traceback = debug.traceback("FUnit assertion failed: "..tostring(message), 2)
+        error({is_test_runner_assert = true, message = tostring(message), traceback = traceback})
     end
 end
 
