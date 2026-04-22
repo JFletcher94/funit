@@ -131,6 +131,12 @@ deploy-job:
       MOD_FILENAME=$(basename "$MOD_ZIP")
       PACKAGE_BASE_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${MOD_NAME}/${MOD_VERSION}"
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file "${MOD_ZIP}" "${PACKAGE_BASE_URL}/${MOD_FILENAME}"
+      UPLOAD_URL=$(curl -s -X POST \
+        -H "Authorization: Bearer ${API_KEY}" \
+        -F "mod=${MOD_NAME}" \
+        https://mods.factorio.com/api/v2/mods/releases/init_upload \
+        | jq -r '.upload_url') && \
+      curl -X POST -F "file=@${MOD_ZIP}" "${UPLOAD_URL}"
   rules:
      - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE != "schedule"
        changes:
