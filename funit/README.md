@@ -12,7 +12,7 @@ Examples from my mods:
 
 ## FUnit Test Runner
 
-Create a custom scenario, and in the scenario's `control.lua`, and add a `test_runner`. Then register the mod and its tests. All tests will run automatically when a new game is created from the scenario, or when a saved game of the scenario is loaded. Also see [`test_runner.lua`](https://gitlab.com/jfletcher94/funit/-/blob/master/funit/test_runner.lua) for more.
+Create a custom scenario, and in the scenario's `control.lua`, add a `test_runner`. Then register the mod and its tests. All tests will run automatically when a new game is created from the scenario, or when a saved game of the scenario is loaded. Also see [`test_runner.lua`](https://gitlab.com/jfletcher94/funit/-/blob/master/funit/test_runner.lua) for more.
 
 _All code examples in this section are placed in a test scenario's `control.lua`._
 
@@ -65,9 +65,7 @@ runner.after_each(
 
 #### `assert`
 
-Tests that complete successfully will be reported as `SUCCESS`. Tests that fail will be reported as `FAILED`. Tests that raise an error will be reported as `ERROR`.
-
-You can use Lua's built-in `assert` in FUnit tests, but they will be reported as `ERROR` instead of `FAILED`. For failures to be reported properly, use FUnit's `assert` instead:
+Tests that complete successfully will be reported as `SUCCESS`. Tests that fail will be reported as `FAILED`. Tests that raise an error will be reported as `ERROR`. You can use Lua's built-in `assert` in FUnit tests, but they will be reported as `ERROR` instead of `FAILED`. For failures to be reported properly, use FUnit's `assert` instead:
 
 ```lua
 runner.test(
@@ -129,7 +127,7 @@ runner.test(
     function()
         entity.order_deconstruction("player")
         runner.on_event_do(
-            defines.event.on_robot_mined_entity, -- Event
+            defines.event.on_robot_mined_entity, -- Event type
             function(event) -- Continued test logic
                 runner.assert(event.robot.name == "my-bot", "Wrong robot!")
             end,
@@ -142,7 +140,7 @@ runner.test(
 
 #### Chaining Calls
 
-FUnit does not support multiple simultaneous delayed invocations of the same type. Calling `after_n_ticks_do` a second time, while the first is still running, will result in an error; calling `on_event_do` a second time (_for the same event type_) will overwrite the first.
+FUnit does not support multiple simultaneous delayed invocations of the same type. Calling `after_n_ticks_do` a second time before first has begun its callback, will result in an error; calling `on_event_do` a second time (_for the same event type_) before the first has begun its callback will overwrite the first.
 
 To implement test logic that requires multiple of the same delayed invocation, they need to be chained together (nested):
 
@@ -175,7 +173,7 @@ Event handlers can be important to test, but it's not always feasible to get rea
 
 ### Register a Mod
 
-In order for a mod's event handlers to be trigger by FUnit's mocked events, **it must register itself with the event mocker** in its `control.lua`:
+In order for a mod's event handlers to be triggered by FUnit's mocked events, **it must register itself with the event mocker** in its `control.lua`:
 
 _This is in the **mod's** `control.lua`, **not the scenario's**._
 
