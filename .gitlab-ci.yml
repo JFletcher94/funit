@@ -138,6 +138,7 @@ deploy-job:
 
 upload-readme-job:
   stage: upload
+  image: registry.gitlab.com/gitlab-org/cli:latest
   needs:
     - job: build-archive-job
   before_script:
@@ -153,3 +154,4 @@ upload-readme-job:
      - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE != "schedule"
        changes:
         - "${MOD_NAME}/README.md"
+        - .gitlab-ci.yml
