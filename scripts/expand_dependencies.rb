@@ -56,7 +56,7 @@ unless info_file.nil? or File.exist?(info_file)
   exit 1
 end
 
-enabled_set = Set.new(["base"])
+enabled_set = Set.new(["base", "funit"])
 fetched = Set.new
 
 if info_file
