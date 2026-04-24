@@ -33,12 +33,9 @@ build-archive-job:
     - mkdir -p artifacts/${MOD_NAME}/test/scenarios
     - git archive --worktree-attributes --format=zip HEAD:"${MOD_NAME}" -o "artifacts/${MOD_NAME}/${ARCHIVE_NAME}" --prefix="${FOLDER_NAME}/"
 
-    - cp ${MOD_NAME}/test/*.json artifacts/${MOD_NAME}/test/
+    - cp ${MOD_NAME}/test/* artifacts/${MOD_NAME}/test/
 
     - ls -1 "${MOD_NAME}"/test/saves/ 2>/dev/null > "artifacts/${MOD_NAME}/save_names.txt" || true
-    - if [ -s "artifacts/${MOD_NAME}/save_names.txt" ]; then
-        cat "artifacts/${MOD_NAME}/save_names.txt" | xargs -I {} cp -rv "${MOD_NAME}/test/saves/{}" "artifacts/${MOD_NAME}/saves/";
-      fi
     - ls -1 "${MOD_NAME}"/scenarios/ 2>/dev/null | grep "__funit__" > "artifacts/${MOD_NAME}/scenario_names.txt" || true
     - if [ -s "artifacts/${MOD_NAME}/scenario_names.txt" ]; then
         cat "artifacts/${MOD_NAME}/scenario_names.txt" | xargs -I {} cp -rv "${MOD_NAME}/scenarios/{}" "artifacts/${MOD_NAME}/scenarios/";
