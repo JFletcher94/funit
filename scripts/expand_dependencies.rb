@@ -28,11 +28,11 @@ OptionParser.new do |opts|
     options[:mod_list] = v
   end
 
-  opts.on("-i", "--info FILE", "Mod's info.json file ") do |v|
+  opts.on("-i", "--info FILE", "Mod's info.json file") do |v|
     options[:info_file] = v
   end
 
-  opts.on("-o", "--output FILE", "Output mod-list.json (default: overwrite input)") do |v|
+  opts.on("-o", "--output FILE", "Output mod-list.json (default: print to stdout)") do |v|
     options[:output] = v
   end
 
