@@ -62,7 +62,6 @@ if [ -s "scenario_names.txt" ]; then
 
         if [ -s "/factorio/scenarios/$fn/mod-list.json" ]; then
             echo "Using $fn/mod-list.json"
-            cat "/factorio/scenarios/$fn/mod-list.json"
             cp "/factorio/scenarios/$fn/mod-list.json" "$MODS"/
         else
             echo "Using default mod-list.json"
