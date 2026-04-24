@@ -96,6 +96,7 @@ unit-test-job:
         - .gitlab-ci.yml
         - Dockerfile
         - entrypoint.sh
+        - scripts/*
 
 parse-results-job:
   stage: test
