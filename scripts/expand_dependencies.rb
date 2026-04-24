@@ -18,7 +18,7 @@ def parse_dependency_name(raw_dep_str)
   return nil if raw_dep_str.nil? 
   dep_str = raw_dep_str.strip
   return nil if dep_str.empty? || dep_str.start_with?("?") || dep_str.start_with?("!") || dep_str.start_with?("(?)")
-  return dep_str.split(/\s+/).first
+  return dep_str.gsub(/[<>=]/, ' ').split(/\s+/).first
 end
 
 OptionParser.new do |opts|
