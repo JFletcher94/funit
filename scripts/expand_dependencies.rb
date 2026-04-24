@@ -18,7 +18,7 @@ def parse_dependency_name(raw_dep_str)
   return nil if raw_dep_str.nil? 
   dep_str = raw_dep_str.strip
   return nil if dep_str.empty? || dep_str.start_with?("?") || dep_str.start_with?("!") || dep_str.start_with?("(?)")
-  return dep_str.gsub(/[<>=]/, ' ').split(/\s+/).first
+  return dep_str.gsub(/[~]/, '').strip.split(/[<>=]+/).first.strip
 end
 
 OptionParser.new do |opts|
@@ -92,9 +92,10 @@ while !to_fetch.empty?
     mod_name = parse_dependency_name(raw_mod_name)
     next if fetched.include?(mod_name)
 
+    enabled_set << mod_name
     fetched << mod_name
 
-    uri = URI("https://mods.factorio.com/api/mods/#{mod_name}/full")
+    uri = URI("https://mods.factorio.com/api/mods/#{URI.encode_uri_component(mod_name)}/full")
     begin
       response = Net::HTTP.get_response(uri)
       if response.code != "200"
@@ -106,17 +107,14 @@ while !to_fetch.empty?
 
       deps = []
       if mod_data["releases"] && !mod_data["releases"].empty?
-        latest = mod_data["releases"].max_by { |r| r["version"] || "" }
+        latest = mod_data["releases"].max_by { |r| Gem::Version.new(r["version"]) || "" }
         deps = latest.dig("info_json", "dependencies") || [] if latest
       end
 
       deps.each do |dep_str|
         parsed_dep = parse_dependency_name(dep_str)
-        next if parsed_dep.nil? || parsed_dep.empty?
-        unless enabled_set.include?(parsed_dep)
-          new_deps << parsed_dep
-          enabled_set << parsed_dep
-        end
+        next if parsed_dep.nil? || parsed_dep.empty? || enabled_set.include?(parsed_dep)
+        new_deps << parsed_dep
       end
 
     rescue => e
