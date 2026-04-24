@@ -19,9 +19,9 @@ stages:
 
 build-archive-job:
   stage: build
-  image: alpine:latest
+  image: ruby:3.3-alpine
   before_script:
-    - apk add --no-cache git jq
+    - apk add --no-cache git jq # wget
   script:
     - MOD_VERSION=$(jq -r '.version' "$MOD_NAME/info.json")
     - FOLDER_NAME="${MOD_NAME}_${MOD_VERSION}"
@@ -29,9 +29,11 @@ build-archive-job:
 
     - echo "Building archive ${ARCHIVE_NAME}"
 
-    - mkdir -p artifacts/${MOD_NAME}/saves
-    - mkdir -p artifacts/${MOD_NAME}/scenarios
+    - mkdir -p artifacts/${MOD_NAME}/test/saves
+    - mkdir -p artifacts/${MOD_NAME}/test/scenarios
     - git archive --worktree-attributes --format=zip HEAD:"${MOD_NAME}" -o "artifacts/${MOD_NAME}/${ARCHIVE_NAME}" --prefix="${FOLDER_NAME}/"
+
+    - cp ${MOD_NAME}/test/* artifacts/${MOD_NAME}/test/
 
     - ls -1 "${MOD_NAME}"/test/saves/ 2>/dev/null > "artifacts/${MOD_NAME}/save_names.txt" || true
     - if [ -s "artifacts/${MOD_NAME}/save_names.txt" ]; then
@@ -41,6 +43,20 @@ build-archive-job:
     - if [ -s "artifacts/${MOD_NAME}/scenario_names.txt" ]; then
         cat "artifacts/${MOD_NAME}/scenario_names.txt" | xargs -I {} cp -rv "${MOD_NAME}/scenarios/{}" "artifacts/${MOD_NAME}/scenarios/";
       fi
+
+    # - wget https://gitlab.com/jfletcher94/funit/-/raw/master/scripts/expand_dependencies.rb
+    - |
+      if [ -f "artifacts/${MOD_NAME}/test/mod-list.json" ]; then
+        ruby scripts/expand_dependencies.rb -i "${MOD_NAME}/info.json" -m "artifacts/${MOD_NAME}/test/mod-list.json" -o "artifacts/${MOD_NAME}/test/mod-list.json"
+      fi
+      if [ -s "artifacts/${MOD_NAME}/scenario_names.txt" ]; then
+        for scn in $(cat artifacts/${MOD_NAME}/scenario_names.txt); do
+          if [ -f "artifacts/${MOD_NAME}/scenarios/$scn/mod-list.json" ]; then
+            ruby scripts/expand_dependencies.rb -i "${MOD_NAME}/info.json" -m "artifacts/${MOD_NAME}/scenarios/$scn/mod-list.json" -o "artifacts/${MOD_NAME}/scenarios/$scn/mod-list.json"
+          fi
+        done
+      fi
+
     - echo "ARCHIVE_NAME=${ARCHIVE_NAME}" >> build-${MOD_NAME}.env
   artifacts:
     reports:
@@ -51,7 +67,7 @@ build-archive-job:
 
 unit-test-job:
   stage: test
-  image: sirech/dind-ruby:3.2.9
+  image: docker:stable
   services:
     - docker:dind
   needs:
@@ -59,18 +75,8 @@ unit-test-job:
   before_script:
     - apk add --no-cache bash
   script:
+    - docker build --build-arg FACTORIO_VERSION=$FACTORIO_VERSION --build-arg USERNAME="${USERNAME}" --build-arg TOKEN="${TOKEN}" --build-arg MOD_NAME="${MOD_NAME}" --build-arg ARCHIVE_NAME="${ARCHIVE_NAME}" -t $IMAGE_NAME:$IMAGE_TAG-${MOD_NAME} .
     - |
-      if [ -f "${MOD_NAME}/test/mod-list.json" ]; then
-        ruby scripts/expand_dependencies.rb -i "${MOD_NAME}/info.json" -m "${MOD_NAME}/test/mod-list.json" -o "${MOD_NAME}/test/mod-list.json"
-      fi
-      if [ -s "artifacts/${MOD_NAME}/scenario_names.txt" ]; then
-        for scn in $(cat artifacts/${MOD_NAME}/scenario_names.txt); do
-          if [ -f "artifacts/${MOD_NAME}/scenarios/$scn/mod-list.json" ]; then
-            ruby scripts/expand_dependencies.rb -i "${MOD_NAME}/info.json" -m "artifacts/${MOD_NAME}/scenarios/$scn/mod-list.json" -o "artifacts/${MOD_NAME}/scenarios/$scn/mod-list.json"
-          fi
-        done
-      fi
-      docker build --build-arg FACTORIO_VERSION=$FACTORIO_VERSION --build-arg USERNAME="${USERNAME}" --build-arg TOKEN="${TOKEN}" --build-arg MOD_NAME="${MOD_NAME}" --build-arg ARCHIVE_NAME="${ARCHIVE_NAME}" -t $IMAGE_NAME:$IMAGE_TAG-${MOD_NAME} .
       set +e
       bash -c '
         docker run --rm -e MOD_NAME=$MOD_NAME -e USERNAME="${USERNAME}" -e TOKEN="${TOKEN}" -e TIMEOUT=$TIMEOUT $IMAGE_NAME:$IMAGE_TAG-${MOD_NAME} 2>&1 | tee artifacts/${MOD_NAME}/funit.log
