@@ -68,6 +68,7 @@ unit-test-job:
         for scn in $(cat artifacts/${MOD_NAME}/scenario_names.txt); do
           if [ -f "${MOD_NAME}/scenarios/$scn/mod-list.json" ]; then
             ruby scripts/expand_dependencies.rb -i "${MOD_NAME}/info.json" -m "${MOD_NAME}/scenarios/$scn/mod-list.json" -o "${MOD_NAME}/scenarios/$scn/mod-list.json"
+            cat "${MOD_NAME}/scenarios/$scn/mod-list.json"
           fi
         done
       fi

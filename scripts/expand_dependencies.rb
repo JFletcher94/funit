@@ -109,7 +109,6 @@ while !to_fetch.empty?
       deps = []
       if mod_data["releases"] && !mod_data["releases"].empty?
         latest = mod_data["releases"].max_by { |r| r["version"] || "" }
-        puts "#{mod_name}: #{latest["version"]}"
         deps = latest.dig("info_json", "dependencies") || [] if latest
       end
 
@@ -135,7 +134,7 @@ enabled_set.each { |name| final_mods << { "name" => name, "enabled" => true } }
 
 if output_file
   File.write(output_file, JSON.pretty_generate({ "mods" => final_mods }))
-  puts "Done! Wrote to '#{output_file}'"
+  puts "Wrote to '#{output_file}'"
 else
   puts JSON.pretty_generate({ "mods" => final_mods })
 end
