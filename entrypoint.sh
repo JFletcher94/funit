@@ -5,7 +5,6 @@ EARLY_SUCCESS_FLAG="/funit_early_success.$$"
 
 mkdir -p /factorio/saves
 
-# TODO: Move saves to $SAVES
 if [ -s "save_names.txt" ]; then
     for fn in $(cat save_names.txt); do
         EXIT_CODE=0
