@@ -61,20 +61,16 @@ unit-test-job:
     - apk add --no-cache bash
   script:
     - |
-      MOD_LISTS=()
       if [ -f "${MOD_NAME}/test/mod-list.json" ]; then
-        MOD_LISTS+=("${MOD_NAME}/test/mod-list.json")
+        ruby scripts/expand_dependencies.rb -i "${MOD_NAME}/info.json" -m "${MOD_NAME}/test/mod-list.json" -o "${MOD_NAME}/test/mod-list.json"
       fi
       if [ -s "artifacts/${MOD_NAME}/scenario_names.txt" ]; then
         for scn in $(cat artifacts/${MOD_NAME}/scenario_names.txt); do
           if [ -f "${MOD_NAME}/scenarios/$scn/mod-list.json" ]; then
-            MOD_LISTS+=("${MOD_NAME}/scenarios/$scn/mod-list.json")
+            ruby scripts/expand_dependencies.rb -i "${MOD_NAME}/info.json" -m "${MOD_NAME}/scenarios/$scn/mod-list.json" -o "${MOD_NAME}/scenarios/$scn/mod-list.json"
           fi
         done
       fi
-      for modlist in "${MOD_LISTS[@]}"; do
-        ruby scripts/expand_dependencies.rb -m $modlist -i "${MOD_NAME}/info.json" -o $modlist
-      done
       docker build --build-arg FACTORIO_VERSION=$FACTORIO_VERSION --build-arg USERNAME="${USERNAME}" --build-arg TOKEN="${TOKEN}" --build-arg MOD_NAME="${MOD_NAME}" --build-arg ARCHIVE_NAME="${ARCHIVE_NAME}" -t $IMAGE_NAME:$IMAGE_TAG-${MOD_NAME} .
       set +e
       bash -c '
