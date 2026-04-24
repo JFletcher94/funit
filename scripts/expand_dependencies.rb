@@ -87,7 +87,6 @@ end
 
 to_fetch = enabled_set.reject { |name| local_mod == name or BUILTIN_MODS.include?(name) }.to_a
 
-iteration = 0
 while !to_fetch.empty?
   new_deps = Set.new
 
