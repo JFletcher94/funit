@@ -16,13 +16,12 @@ stages:
   - build
   - test
   - deploy
-  - upload
 
 build-archive-job:
   stage: build
-  image: alpine:latest
+  image: ruby:3.3-alpine
   before_script:
-    - apk add --no-cache git jq
+    - apk add --no-cache git jq # wget
   script:
     - MOD_VERSION=$(jq -r '.version' "$MOD_NAME/info.json")
     - FOLDER_NAME="${MOD_NAME}_${MOD_VERSION}"
@@ -30,18 +29,31 @@ build-archive-job:
 
     - echo "Building archive ${ARCHIVE_NAME}"
 
-    - mkdir -p artifacts/${MOD_NAME}/saves
+    - mkdir -p artifacts/${MOD_NAME}/test
     - mkdir -p artifacts/${MOD_NAME}/scenarios
+
     - git archive --worktree-attributes --format=zip HEAD:"${MOD_NAME}" -o "artifacts/${MOD_NAME}/${ARCHIVE_NAME}" --prefix="${FOLDER_NAME}/"
+    - cp -r ${MOD_NAME}/test/* artifacts/${MOD_NAME}/test/
 
     - ls -1 "${MOD_NAME}"/test/saves/ 2>/dev/null > "artifacts/${MOD_NAME}/save_names.txt" || true
-    - if [ -s "artifacts/${MOD_NAME}/save_names.txt" ]; then
-        cat "artifacts/${MOD_NAME}/save_names.txt" | xargs -I {} cp -rv "${MOD_NAME}/test/saves/{}" "artifacts/${MOD_NAME}/saves/";
-      fi
     - ls -1 "${MOD_NAME}"/scenarios/ 2>/dev/null | grep "__funit__" > "artifacts/${MOD_NAME}/scenario_names.txt" || true
     - if [ -s "artifacts/${MOD_NAME}/scenario_names.txt" ]; then
         cat "artifacts/${MOD_NAME}/scenario_names.txt" | xargs -I {} cp -rv "${MOD_NAME}/scenarios/{}" "artifacts/${MOD_NAME}/scenarios/";
       fi
+
+    # - wget https://gitlab.com/jfletcher94/funit/-/raw/master/scripts/expand_dependencies.rb
+    - |
+      if [ -f "artifacts/${MOD_NAME}/test/mod-list.json" ]; then
+        ruby scripts/expand_dependencies.rb -i "${MOD_NAME}/info.json" -m "artifacts/${MOD_NAME}/test/mod-list.json" -o "artifacts/${MOD_NAME}/test/mod-list.json"
+      fi
+      if [ -s "artifacts/${MOD_NAME}/scenario_names.txt" ]; then
+        for scn in $(cat artifacts/${MOD_NAME}/scenario_names.txt); do
+          if [ -f "artifacts/${MOD_NAME}/scenarios/$scn/mod-list.json" ]; then
+            ruby scripts/expand_dependencies.rb -i "${MOD_NAME}/info.json" -m "artifacts/${MOD_NAME}/scenarios/$scn/mod-list.json" -o "artifacts/${MOD_NAME}/scenarios/$scn/mod-list.json"
+          fi
+        done
+      fi
+
     - echo "ARCHIVE_NAME=${ARCHIVE_NAME}" >> build-${MOD_NAME}.env
   artifacts:
     reports:
@@ -86,14 +98,15 @@ unit-test-job:
         - .gitlab-ci.yml
         - Dockerfile
         - entrypoint.sh
+        - scripts/*
 
 parse-results-job:
   stage: test
   image: ruby:3.3-alpine
   needs:
     - job: unit-test-job
-  before_script:
-    - apk add --no-cache wget
+  # before_script:
+  #   - apk add --no-cache wget
   script:
     # - wget https://gitlab.com/jfletcher94/funit/-/raw/master/scripts/parse_funit_log.rb
     - ruby scripts/parse_funit_log.rb artifacts/${MOD_NAME}/funit.log junit-report-${MOD_NAME}.xml
@@ -114,6 +127,7 @@ parse-results-job:
         - .gitlab-ci.yml
         - Dockerfile
         - entrypoint.sh
+        - scripts/*
 
 deploy-job:
   stage: deploy
@@ -143,7 +157,7 @@ deploy-job:
         - "${MOD_NAME}/info.json"
 
 upload-readme-job:
-  stage: upload
+  stage: deploy
   image: registry.gitlab.com/gitlab-org/cli:latest
   needs:
     - job: build-archive-job
