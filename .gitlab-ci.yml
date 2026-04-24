@@ -52,7 +52,7 @@ build-archive-job:
 
 unit-test-job:
   stage: test
-  image: sirech/dind-ruby
+  image: sirech/dind-ruby:3.2.9
   services:
     - docker:dind
   needs:
