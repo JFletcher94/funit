@@ -65,8 +65,8 @@ unit-test-job:
       if [ -f "${MOD_NAME}/test/mod-list.json" ]; then
         MOD_LISTS+=("${MOD_NAME}/test/mod-list.json")
       fi
-      if [ -s "scenario_names.txt" ]; then
-        for scn in $(cat scenario_names.txt); do
+      if [ -s "artifacts/${MOD_NAME}/scenario_names.txt" ]; then
+        for scn in $(cat artifacts/${MOD_NAME}/scenario_names.txt); do
           if [ -f "${MOD_NAME}/scenarios/$scn/mod-list.json" ]; then
             MOD_LISTS+=("${MOD_NAME}/scenarios/$scn/mod-list.json")
           fi
