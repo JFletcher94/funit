@@ -8,7 +8,8 @@ BUILTIN_MODS = Set.new(["base", "quality", "elevated-rails", "space-age"])
 local_mod = nil
 
 def is_required_dependency(dep_str)
-  return not (dep_str.start_with?("?") || dep_str.start_with?("!") || dep_str.start_with?("(?)"))
+  return false if (dep_str.start_with?("?") || dep_str.start_with?("!") || dep_str.start_with?("(?)"))
+  return true
 end
 
 def parse_dependency_name(dep_str)
