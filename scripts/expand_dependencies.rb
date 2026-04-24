@@ -5,23 +5,21 @@ require 'set'
 require 'optparse'
 
 BUILTIN_MODS = Set.new(["base", "quality", "elevated-rails", "space-age"])
+
 local_mod = nil
-
-def is_required_dependency(dep_str)
-  return false if (dep_str.start_with?("?") || dep_str.start_with?("!") || dep_str.start_with?("(?)"))
-  return true
-end
-
-def parse_dependency_name(dep_str)
-  return nil if dep_str.nil? || dep_str.strip.empty? or not is_required_dependency(dep_str.strip)
-  return dep_str.strip.split(/\s+/).first
-end
 
 options = {
   mod_list: "mod-list.json",
   info_file: nil,
   output: nil
 }
+
+def parse_dependency_name(raw_dep_str)
+  return nil if raw_dep_str.nil? 
+  dep_str = raw_dep_str.strip
+  return nil if dep_str.empty? || dep_str.start_with?("?") || dep_str.start_with?("!") || dep_str.start_with?("(?)")
+  return dep_str.strip.split(/\s+/).first
+end
 
 OptionParser.new do |opts|
   opts.banner = "Usage: ruby expand_dependencies.rb -m mod-list.json [-i info.json] [-o output.json]"
@@ -122,7 +120,7 @@ while !to_fetch.empty?
       end
 
     rescue => e
-      puts "    Error fetching #{mod_name}: #{e.message}"
+      puts "Error fetching #{mod_name}: #{e.message}"
     end
   end
   to_fetch = new_deps.reject { |name| local_mod == name or BUILTIN_MODS.include?(name) }.to_a
