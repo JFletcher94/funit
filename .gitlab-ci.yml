@@ -16,7 +16,6 @@ stages:
   - build
   - test
   - deploy
-  - upload
 
 build-archive-job:
   stage: build
@@ -67,7 +66,7 @@ unit-test-job:
       if [ -s "artifacts/${MOD_NAME}/scenario_names.txt" ]; then
         for scn in $(cat artifacts/${MOD_NAME}/scenario_names.txt); do
           if [ -f "artifacts/${MOD_NAME}/scenarios/$scn/mod-list.json" ]; then
-            ruby scripts/expand_dependencies.rb -i "${MOD_NAME}/info.json" -m "artifacts/${MOD_NAME}/scenarios/$scn/mod-list.json" -o "$artifacts/{MOD_NAME}/scenarios/$scn/mod-list.json"
+            ruby scripts/expand_dependencies.rb -i "${MOD_NAME}/info.json" -m "artifacts/${MOD_NAME}/scenarios/$scn/mod-list.json" -o "artifacts/${MOD_NAME}/scenarios/$scn/mod-list.json"
           fi
         done
       fi
@@ -103,8 +102,8 @@ parse-results-job:
   image: ruby:3.3-alpine
   needs:
     - job: unit-test-job
-  before_script:
-    - apk add --no-cache wget
+  # before_script:
+  #   - apk add --no-cache wget
   script:
     # - wget https://gitlab.com/jfletcher94/funit/-/raw/master/scripts/parse_funit_log.rb
     - ruby scripts/parse_funit_log.rb artifacts/${MOD_NAME}/funit.log junit-report-${MOD_NAME}.xml
@@ -125,6 +124,7 @@ parse-results-job:
         - .gitlab-ci.yml
         - Dockerfile
         - entrypoint.sh
+        - scripts/*
 
 deploy-job:
   stage: deploy
@@ -154,7 +154,7 @@ deploy-job:
         - "${MOD_NAME}/info.json"
 
 upload-readme-job:
-  stage: upload
+  stage: deploy
   image: registry.gitlab.com/gitlab-org/cli:latest
   needs:
     - job: build-archive-job
