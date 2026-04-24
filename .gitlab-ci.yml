@@ -57,8 +57,8 @@ unit-test-job:
     - docker:dind
   needs:
     - job: build-archive-job
- # before_script:
- #   - apk add --no-cache bash
+  before_script:
+    - apk add --no-cache bash
   script:
     - |
       if [ -f "${MOD_NAME}/test/mod-list.json" ]; then
