@@ -1,0 +1,8 @@
+{
+    "mods": [
+        {
+            "name": "rigor-module",
+            "enabled": true
+        }
+    ]
+}
