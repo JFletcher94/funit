@@ -56,7 +56,7 @@ unless info_file.nil? or File.exist?(info_file)
   exit 1
 end
 
-enabled_set = Set.new
+enabled_set = Set.new(["base"])
 fetched = Set.new
 
 if info_file
@@ -126,6 +126,10 @@ while !to_fetch.empty?
   to_fetch = new_deps.reject { |name| local_mod == name or BUILTIN_MODS.include?(name) }.to_a
 end
 
+if enabled_set.include?("space-age")
+  enabled_set << "quality"
+  enabled_set << "elevated-rails"
+end
 
 final_mods = []
 enabled_set.each { |name| final_mods << { "name" => name, "enabled" => true } }
