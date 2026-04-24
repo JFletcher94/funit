@@ -52,13 +52,13 @@ build-archive-job:
 
 unit-test-job:
   stage: test
-  image: ruby:3.3-alpine
+  image: sirech/dind-ruby
   services:
     - docker:dind
   needs:
     - job: build-archive-job
-  before_script:
-    - apk add --no-cache bash
+ # before_script:
+ #   - apk add --no-cache bash
   script:
     - |
       if [ -f "${MOD_NAME}/test/mod-list.json" ]; then
