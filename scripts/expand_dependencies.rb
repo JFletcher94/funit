@@ -2,113 +2,140 @@ require 'json'
 require 'net/http'
 require 'uri'
 require 'set'
+require 'optparse'
 
 BUILTIN_MODS = Set.new(["base", "quality", "elevated-rails", "space-age"])
+local_mod = nil
 
 def is_required_dependency(dep_str)
-  return false if dep_str.nil? || dep_str.strip.empty?
-
-  s = dep_str.strip
-  return not (s.start_with?("?") || s.start_with?("!") || s.start_with?("(?)"))
+  return not (dep_str.start_with?("?") || dep_str.start_with?("!") || dep_str.start_with?("(?)"))
 end
 
 def parse_dependency_name(dep_str)
-  return nil if dep_str.nil? || dep_str.strip.empty?
+  return nil if dep_str.nil? || dep_str.strip.empty? or not is_required_dependency(dep_str.strip)
   return dep_str.strip.split(/\s+/).first
 end
 
-# ====================== Main script ======================
+options = {
+  mod_list: "mod-list.json",
+  info_file: nil,
+  output: nil
+}
 
-input_file = ARGV[0] || "mod-list.json"
-# TODO: include info.json for mod being tested!
+OptionParser.new do |opts|
+  opts.banner = "Usage: ruby expand_dependencies.rb -m mod-list.json [-i info.json] [-o output.json]"
+
+  opts.on("-m", "--mod-list FILE", "Input mod-list.json file") do |v|
+    options[:mod_list] = v
+  end
+
+  opts.on("-i", "--info FILE", "Mod's info.json file ") do |v|
+    options[:info_file] = v
+  end
+
+  opts.on("-o", "--output FILE", "Output mod-list.json (default: overwrite input)") do |v|
+    options[:output] = v
+  end
+
+  opts.on_tail("-h", "--help", "Show this message") do
+    puts opts
+    exit
+  end
+end.parse!
+
+input_file = options[:mod_list]
+info_file = options[:info_file]
+output_file = options[:output]
 
 unless File.exist?(input_file)
   puts "Error: Input file '#{input_file}' not found."
   exit 1
 end
 
-data = JSON.parse(File.read(input_file))
-mods_array = data["mods"] || []
+unless info_file.nil? or File.exist?(info_file)
+  puts "Error: Info file '#{info_file}' not found."
+  exit 1
+end
 
 enabled_set = Set.new
-mods_array.each do |mod_entry|
-  if mod_entry["enabled"] == true || mod_entry["enabled"].to_s.downcase == "true"
-    name = mod_entry["name"]&.strip
-    next if name.nil? || name.empty?
-    enabled_set << name
+fetched = Set.new
+
+if info_file
+  begin
+    local_mod_info = JSON.parse(File.read(info_file))
+    local_mod = local_mod_info["name"]
+    enabled_set << local_mod
+    local_mod_info["dependencies"].each do |dep|
+      parsed_dep = parse_dependency_name(dep)
+      next if parsed_dep.nil? || parsed_dep.empty?
+      enabled_set << parsed_dep
+    end
   end
 end
 
-to_fetch = enabled_set.reject { |name| BUILTIN_MODS.include?(name) }.to_a
+data = JSON.parse(File.read(input_file))
+mods_array = data["mods"] || []
+
+mods_array.each do |mod_entry|
+  if mod_entry["enabled"] == true || mod_entry["enabled"].to_s.downcase == "true"
+    parsed_mod = parse_dependency_name(mod_entry["name"])
+    next if parsed_mod.nil? || parsed_mod.empty?
+    enabled_set << parsed_mod
+  end
+end
+
+to_fetch = enabled_set.reject { |name| local_mod == name or BUILTIN_MODS.include?(name) }.to_a
 
 iteration = 0
 while !to_fetch.empty?
-  iteration += 1
   new_deps = Set.new
 
-  to_fetch.each do |mod_name|
-    next if enabled_set.include?(mod_name)
+  to_fetch.each do |raw_mod_name|
+    mod_name = parse_dependency_name(raw_mod_name)
+    next if fetched.include?(mod_name)
 
-    puts "  Fetching #{mod_name}..."
+    fetched << mod_name
 
     uri = URI("https://mods.factorio.com/api/mods/#{mod_name}/full")
-
     begin
       response = Net::HTTP.get_response(uri)
       if response.code != "200"
-        puts "    Warning: HTTP #{response.code} for #{mod_name}"
-        fetched << mod_name
+        puts "Warning: HTTP #{response.code} for #{mod_name}"
         next
       end
 
       mod_data = JSON.parse(response.body)
 
       deps = []
-      if mod_data.dig("latest_release", "info_json", "dependencies")
-        deps = mod_data["latest_release"]["info_json"]["dependencies"]
-      elsif mod_data["releases"] && !mod_data["releases"].empty?
+      if mod_data["releases"] && !mod_data["releases"].empty?
         latest = mod_data["releases"].max_by { |r| r["version"] || "" }
+        puts "#{mod_name}: #{latest["version"]}"
         deps = latest.dig("info_json", "dependencies") || [] if latest
       end
 
       deps.each do |dep_str|
-        next unless is_required_dependency(dep_str)
-
-        dep_name = parse_dependency_name(dep_str)
-        next if dep_name.nil? || dep_name.empty?
-
-        unless all_mods.include?(dep_name)
-          new_deps << dep_name
+        parsed_dep = parse_dependency_name(dep_str)
+        next if parsed_dep.nil? || parsed_dep.empty?
+        unless enabled_set.include?(parsed_dep)
+          new_deps << parsed_dep
+          enabled_set << parsed_dep
         end
       end
 
-      fetched << mod_name
     rescue => e
       puts "    Error fetching #{mod_name}: #{e.message}"
-      fetched << mod_name
     end
   end
-
-  if new_deps.empty?
-    to_fetch = []
-  else
-    all_mods.merge(new_deps)
-    to_fetch = new_deps.reject { |name| BUILTIN_MODS.include?(name) }.to_a
-    puts "  Added #{new_deps.size} new required dependencies (iteration #{iteration})"
-  end
+  to_fetch = new_deps.reject { |name| local_mod == name or BUILTIN_MODS.include?(name) }.to_a
 end
 
-puts "\nTotal mods after resolution: #{all_mods.size}"
 
-# Build final list
 final_mods = []
-original_enabled.each { |name| final_mods << { "name" => name, "enabled" => true } }
+enabled_set.each { |name| final_mods << { "name" => name, "enabled" => true } }
 
-added = (all_mods - Set.new(original_enabled)).sort
-added.each { |name| final_mods << { "name" => name, "enabled" => true } }
-
-# Overwrite original file
-File.write(input_file, JSON.pretty_generate({ "mods" => final_mods }))
-
-puts "✅ Done! Overwrote '#{input_file}'"
-puts "   #{final_mods.size} mods total (backup: #{backup_file})"
+if output_file
+  File.write(output_file, JSON.pretty_generate({ "mods" => final_mods }))
+  puts "Done! Wrote to '#{output_file}'"
+else
+  puts JSON.pretty_generate({ "mods" => final_mods })
+end

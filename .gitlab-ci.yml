@@ -52,7 +52,7 @@ build-archive-job:
 
 unit-test-job:
   stage: test
-  image: docker:stable
+  image: ruby:3.3-alpine
   services:
     - docker:dind
   needs:
@@ -60,8 +60,22 @@ unit-test-job:
   before_script:
     - apk add --no-cache bash
   script:
-    - docker build --build-arg FACTORIO_VERSION=$FACTORIO_VERSION --build-arg USERNAME="${USERNAME}" --build-arg TOKEN="${TOKEN}" --build-arg MOD_NAME="${MOD_NAME}" --build-arg ARCHIVE_NAME="${ARCHIVE_NAME}" -t $IMAGE_NAME:$IMAGE_TAG-${MOD_NAME} .
     - |
+      MOD_LISTS=()
+      if [ -f "${MOD_NAME}/test/mod-list.json" ]; then
+        MOD_LISTS+=("${MOD_NAME}/test/mod-list.json")
+      fi
+      if [ -s "scenario_names.txt" ]; then
+        for scn in $(cat scenario_names.txt); do
+          if [ -f "${MOD_NAME}/scenarios/$scn/mod-list.json" ]; then
+            MOD_LISTS+=("${MOD_NAME}/scenarios/$scn/mod-list.json")
+          fi
+        done
+      fi
+      for modlist in "${MOD_LISTS[@]}"; do
+        ruby scripts/expand_dependencies.rb -m $modlist -i "${MOD_NAME}/info.json" -o $modlist
+      done
+      docker build --build-arg FACTORIO_VERSION=$FACTORIO_VERSION --build-arg USERNAME="${USERNAME}" --build-arg TOKEN="${TOKEN}" --build-arg MOD_NAME="${MOD_NAME}" --build-arg ARCHIVE_NAME="${ARCHIVE_NAME}" -t $IMAGE_NAME:$IMAGE_TAG-${MOD_NAME} .
       set +e
       bash -c '
         docker run --rm -e MOD_NAME=$MOD_NAME -e USERNAME="${USERNAME}" -e TOKEN="${TOKEN}" -e TIMEOUT=$TIMEOUT $IMAGE_NAME:$IMAGE_TAG-${MOD_NAME} 2>&1 | tee artifacts/${MOD_NAME}/funit.log
