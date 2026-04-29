@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# SPDX-License-Identifier: LGPL-3.0-or-later WITH FUnit-CI-Exception
+#
+# Special exception to LGPL-3.0: Project-specific tweaks and adaptations
+# to CI configuration files (changes made to make the file work for a
+# different project) may be used, copied, modified, and distributed
+# without triggering LGPL copyleft on the downstream project. This does
+# not apply to general improvements that would benefit the original project.
+
 ANY_FAILURE=0
 EARLY_SUCCESS_FLAG="/funit_early_success.$$"
 
