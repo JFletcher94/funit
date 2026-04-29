@@ -2,18 +2,29 @@
 
 ## [Funit](funit/)
 
-Funit is a unit testing framework for Factorio mods. Factorio is automation game, after all—stop hand-crafting your mods!
+Funit is a unit testing framework for Factorio mods. Factorio is automation game, after all—stop hand-crafting your tests!
 
 This repo has several features:
 
-* [Funit](funit/): a Factorio utility [mod](https://mods.factorio.com/mod/funit) for writing unit tests
+* FUnit, a Factorio utility mod for writing unit tests:
+    * See the [`funit/`](funit/) directory for documentation on writing tests with FUnit.
+    * You can find FUnit on the [mod portal](https://mods.factorio.com/mod/funit).
 * Project automation templates:
-    * [CI pipline](.gitlab-ci.yml): automatically build, test and (mostly) deploy your mod(s) with GitLab CI
-    * [Dockerized Factorio server](Dockerfile): run tests on a headless Factorio server (thank you, [factorio-docker](github.com/factoriotools/factorio-docker/)!)
-    * [Configurable test runner](entrypoint.sh): automatically sync mods and mod settings, and run multiple test suites
-    * [Test reports](scripts/parse_funit_log.rb): generate JUnit-style test reports
-    * More to come!
+    * [CI pipline](.gitlab-ci.yml): automatically build, test and deploy your mod(s) with GitLab CI.
+    * [Dockerized Factorio server](Dockerfile): run tests on a headless Factorio server in Docker, thanks to [`factorio-docker`](github.com/factoriotools/factorio-docker/).
+    * [Configurable test runner](entrypoint.sh): automatically sync mods and mod settings, and run multiple test suites.
+* Helper scripts:
+    * [Expand dependencies](scripts/expand_dependencies.rb): Recursively expands mod dependencies.
+    * [Parse FUnit log](scripts/parse_funit_log.rb): Parses Factorio logs for FUnit-style messages and writes results to a JUnit-style XML file.
 
-_Documentation is a work in progress!_
+For examples, see:
 
-See [here](https://gitlab.com/jfletcher94/factorio-mods) for a repo with mods that use FUnit.
+* [FUnit's own tests](https://gitlab.com/jfletcher94/funit/-/blob/master/funit/scenarios/__funit__test/control.lua)
+* [Planet Crucible](https://gitlab.com/jfletcher94/factorio-mods/-/tree/master/planet-crucible/scenarios)
+* [Rigor Module](https://gitlab.com/jfletcher94/factorio-mods/-/tree/master/rigor-module/scenarios)
+
+### License
+
+This project is [licensed](LICENSE) under the **GNU Lesser General Public License v3 or later** ([LGPL-3.0-or-later](https://www.gnu.org/licenses/lgpl+gpl-3.0-standalone.html)), _with the following exception for CI configuration files_:
+
+You can freely copy and distribute CI configuration files with project-specific tweaks, to the extent such changes are required to get CI to work for your project. Such changes, so long as they are project-specific and not general changes/improvements, do not trigger the LGPL copyleft obligation.
