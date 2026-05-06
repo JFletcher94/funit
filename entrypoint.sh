@@ -12,7 +12,6 @@ ANY_FAILURE=0
 EARLY_SUCCESS_FLAG="/funit_early_success.$$"
 
 mkdir -p /factorio/saves
-ls /
 
 if [ -s "save_names.txt" ]; then
     for fn in $(cat save_names.txt); do
