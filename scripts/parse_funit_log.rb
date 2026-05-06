@@ -54,7 +54,7 @@ File.readlines(log_file).each do |line|
       scenario: current_scenario || "unknown",
       name:     test_name,
       status:   status,
-      time:     timestamp - start_timestamp
+      time:     timestamp - start_timestamp,
       message:  message
     }
 
