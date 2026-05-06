@@ -133,7 +133,7 @@ if [ ! -s "scenario_names.txt" ] && [ ! -s "save_names.txt" ]; then
     export UPDATE_IGNORE="${MOD_NAME}"
     echo "____SCENARIO____: freeplay"
     echo "Using default mod-list.json"
-    rm "$MODS"/*.zip
+    rm -f "$MODS"/*.zip
     cp /*.zip "$MODS"/
     cp "/mod-list.json" "$MODS"/ 2>/dev/null || true
     timeout -f "$TIMEOUT" /docker-entrypoint.sh || EXIT_CODE=$?
