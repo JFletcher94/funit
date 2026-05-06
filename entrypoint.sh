@@ -12,13 +12,14 @@ ANY_FAILURE=0
 EARLY_SUCCESS_FLAG="/funit_early_success.$$"
 
 mkdir -p /factorio/saves
+ls /
 
 if [ -s "save_names.txt" ]; then
     for fn in $(cat save_names.txt); do
         EXIT_CODE=0
         echo "____SCENARIO____: $fn"
 
-        cp *.zip "$MODS"/
+        cp /*.zip "$MODS"/
         /opt/factorio/bin/x64/factorio \
             --sync-mods "$fn" \
             --mod-directory "$MODS" \
@@ -60,7 +61,7 @@ fi
 
 if [ -s "scenario_names.txt" ]; then
     mkdir -p /mods_cache
-    cp *.zip /mods_cache/
+    cp /*.zip /mods_cache/
     for fn in $(cat scenario_names.txt); do
         EXIT_CODE=0
         UPDATE_IGNORE=""
@@ -134,7 +135,7 @@ if [ ! -s "scenario_names.txt" ] && [ ! -s "save_names.txt" ]; then
     echo "____SCENARIO____: freeplay"
     echo "Using default mod-list.json"
     rm "$MODS"/*.zip
-    cp *.zip "$MODS"/
+    cp /*.zip "$MODS"/
     cp "/mod-list.json" "$MODS"/ 2>/dev/null || true
     timeout -f "$TIMEOUT" /docker-entrypoint.sh || EXIT_CODE=$?
     if [ "$EXIT_CODE" -ne 124 ] && [ "$EXIT_CODE" -ne 0 ]; then
