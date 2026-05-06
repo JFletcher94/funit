@@ -7,6 +7,7 @@ tests = []
 expected_tests = {}
 current_mod = nil
 current_scenario = nil
+start_timestamp = 0.0
 timestamp = 0.0
 message = nil
 
@@ -58,6 +59,7 @@ File.readlines(log_file).each do |line|
       message:  message
     }
 
+    start_timestamp = timestamp
     message = ""
     next
   end
