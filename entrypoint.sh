@@ -18,7 +18,10 @@ if [ -s "save_names.txt" ]; then
         EXIT_CODE=0
         echo "____SCENARIO____: $fn"
 
+        ls /
+        echo "---"
         cp /*.zip "$MODS"/
+        ls "$MODS"/
         /opt/factorio/bin/x64/factorio \
             --sync-mods "$fn" \
             --mod-directory "$MODS" \
