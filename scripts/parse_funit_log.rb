@@ -11,32 +11,48 @@ current_scenario = nil
 File.readlines(log_file).each do |line|
   line = line.strip
 
-  if match = line.match(/__FUNIT__([^=]+)__====BEGIN (\d+) TESTS====/)
-    current_mod = match[1].strip
-    expected_count = match[2].to_i
-    expected_tests[current_mod] ||= 0
-    expected_tests[current_mod] += expected_count
-    next
-  end
-
   if match = line.match(/____SCENARIO____:\s*(.+)/)
     current_scenario = match[1].strip
+    message = ""
+    next
+  elsif not current_scenario
+    next
+  end
+  
+  if match = line.match(/^(\d\.\d{3})/)
+    timestamp = match[1].to_f
+  end
+
+  if match = line.match(/__FUNIT__(.+)__====BEGIN (\d+) TESTS====/)
+    current_mod = match[1].strip
+    expected_count = match[2].to_i
+    start_timestamp = timestamp
+    expected_tests[current_mod] ||= 0
+    expected_tests[current_mod] += expected_count
+    message = ""
     next
   end
 
-  if match = line.match(/__FUNIT__([^_]+)__([A-Z]+)__(.+)/)
+  if match = line.match(/__FUNIT__(.+)__(SUCCESS|FAILURE|ERROR)__(.+)/)
     mod_name  = match[1]
     status    = match[2]
     test_name = match[3].strip
+    message = ""
 
     tests << {
       mod:      mod_name,
       scenario: current_scenario || "unknown",
       name:     test_name,
       status:   status,
-      time:     0.0
+      time:     timestamp - start_timestamp
     }
     next
+  end
+  
+  if match = line.match(/__FUNIT__.+__(.+)/)
+    message << "\n" << match[1]
+  else
+    message << "\n" << line
   end
 end
 
