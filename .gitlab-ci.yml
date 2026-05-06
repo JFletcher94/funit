@@ -55,7 +55,7 @@ build-archive-job:
         done
       fi
       if [ -s "${MOD_NAME}/test/mod-list.json" ]; then
-        ruby scripts/expand_dependencies.rb -i "${MOD_NAME}/info.json" -m "artifacts/${MOD_NAME}/test/mod-list.json" -o "artifacts/${MOD_NAME}/test/mod-list.json"
+        ruby scripts/expand_dependencies.rb -i "${MOD_NAME}/info.json" -m "${MOD_NAME}/test/mod-list.json" -o "${MOD_NAME}/test/mod-list.json"
       fi
   artifacts:
     paths:
