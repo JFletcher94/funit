@@ -18,7 +18,7 @@ if [ -s "save_names.txt" ]; then
         EXIT_CODE=0
         echo "____SCENARIO____: $fn"
 
-        cp "/$ARCHIVE_NAME" "$MODS"/
+        cp /*.zip "$MODS"/
         /opt/factorio/bin/x64/factorio \
             --sync-mods "$fn" \
             --mod-directory "$MODS" \
@@ -133,7 +133,8 @@ if [ ! -s "scenario_names.txt" ] && [ ! -s "save_names.txt" ]; then
     export UPDATE_IGNORE="${MOD_NAME}"
     echo "____SCENARIO____: freeplay"
     echo "Using default mod-list.json"
-    cp "/$ARCHIVE_NAME" "$MODS"/
+    rm "$MODS"/*.zip
+    cp /*.zip "$MODS"/
     cp "/mod-list.json" "$MODS"/
     timeout -f "$TIMEOUT" /docker-entrypoint.sh || EXIT_CODE=$?
     if [ "$EXIT_CODE" -ne 124 ] && [ "$EXIT_CODE" -ne 0 ]; then
