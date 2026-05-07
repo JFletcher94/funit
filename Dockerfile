@@ -9,7 +9,6 @@
 FROM factoriotools/factorio
 
 ARG FACTORIO_VERSION
-ARG ARCHIVE_NAME
 ARG USERNAME
 ARG TOKEN
 ARG MOD_NAME
@@ -21,16 +20,15 @@ ENV CONFIG=/factorio/config
 ENV MODS=/factorio/mods
 ENV USERNAME=${USERNAME}
 ENV TOKEN=${TOKEN}
-ENV ARCHIVE_NAME=${ARCHIVE_NAME}
 
-COPY artifacts/"$MOD_NAME"/test/* /
+COPY "$MOD_NAME"/test/ /
 
 RUN mkdir -p "$CONFIG"
 RUN mkdir -p "$MODS"
 RUN envsubst < /server-settings.json > "$CONFIG"/server-settings.json
 RUN envsubst < /player-data.json > /opt/factorio/player-data.json
 
-COPY "artifacts/${MOD_NAME}/${ARCHIVE_NAME}" /
+COPY artifacts/*/*.zip /
 COPY artifacts/"$MOD_NAME"/save_names.txt /save_names.txt
 COPY artifacts/"$MOD_NAME"/scenario_names.txt /scenario_names.txt
 COPY artifacts/"$MOD_NAME"/scenarios /factorio/scenarios
