@@ -162,9 +162,10 @@ end
 passed = tests.count { |t| t[:status] == "SUCCESS" }
 failed = tests.count { |t| t[:status] == "FAILURE" }
 errored = tests.count { |t| t[:status] == "ERROR" }
+skipped = tests.count { |t| t[:status] == "SKIPPED" }
 
 puts "JUnit report generated: #{output_file}"
-puts "   Total tests: #{tests.size} | Passed: #{passed} | Failures: #{failed} | Errors: #{errored}"
+puts "   Total tests: #{tests.size} | Passed: #{passed} | Failures: #{failed} | Errors: #{errored} | Skipped: #{skipped}"
 
 if missing_tests > 0
   puts "#{missing_tests} expected tests did not run!"
