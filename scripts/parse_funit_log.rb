@@ -123,17 +123,19 @@ tests.group_by { |t| t[:mod] }.each do |mod_name, mod_tests|
         failure = REXML::Element.new("failure")
         failure.add_attribute("message", "Test failure")
         failure.add_attribute("type", "AssertionFailed")
+        failure.add_text(REXML::CData.new(test[:message])) if test[:message] && !test[:message].empty?
         testcase.add_element(failure)
       elsif test[:status] == "ERROR"
         error = REXML::Element.new("error")
         error.add_attribute("message", "Test error")
         error.add_attribute("type", "RuntimeError")
+        error.add_text(REXML::CData.new(test[:message])) if test[:message] && !test[:message].empty?
         testcase.add_element(error)
       end
 
-      if test[:message] && !test[:message].strip.empty?
+      if test[:message] && !test[:message].empty?
         system_out = REXML::Element.new("system-out")
-        system_out.add_text(REXML::CData.new(test[:message].strip))
+        system_out.add_text(REXML::CData.new(test[:message]))
         testcase.add_element(system_out)
       end
 
