@@ -15,19 +15,19 @@ mkdir -p /factorio/saves
 
 if [ -s "save_names.txt" ]; then
     for fn in $(cat save_names.txt); do
-        EXIT_CODE=0
         echo "____SCENARIO____: $fn"
+        EXIT_CODE=0
 
-        cp "/$ARCHIVE_NAME" "$MODS"/
+        cp /*.zip "$MODS"/
+        export SAVE_NAME="/saves/$fn"
         /opt/factorio/bin/x64/factorio \
-            --sync-mods "$fn" \
+            --sync-mods "$SAVE_NAME" \
             --mod-directory "$MODS" \
             --server-settings "$CONFIG/server-settings.json" || EXIT_CODE=$?
         if [ "$EXIT_CODE" -ne 0 ]; then
             ANY_FAILURE=$EXIT_CODE
         fi
 
-        export SAVE_NAME=$fn
         export EARLY_SUCCESS_FLAG
         timeout -f "$TIMEOUT" bash -c '/opt/factorio/bin/x64/factorio \
             --start-server "$SAVE_NAME" \
@@ -133,8 +133,9 @@ if [ ! -s "scenario_names.txt" ] && [ ! -s "save_names.txt" ]; then
     export UPDATE_IGNORE="${MOD_NAME}"
     echo "____SCENARIO____: freeplay"
     echo "Using default mod-list.json"
-    cp "/$ARCHIVE_NAME" "$MODS"/
-    cp "/mod-list.json" "$MODS"/
+    rm -f "$MODS"/*.zip
+    cp /*.zip "$MODS"/
+    cp "/mod-list.json" "$MODS"/ 2>/dev/null || true
     timeout -f "$TIMEOUT" /docker-entrypoint.sh || EXIT_CODE=$?
     if [ "$EXIT_CODE" -ne 124 ] && [ "$EXIT_CODE" -ne 0 ]; then
         ANY_FAILURE=$EXIT_CODE

@@ -1,7 +1,7 @@
 {
     "mods": [
         {
-            "name": "rigor-module",
+            "name": "RateCalculator",
             "enabled": true
         }
     ]

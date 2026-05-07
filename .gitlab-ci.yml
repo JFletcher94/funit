@@ -27,45 +27,37 @@ stages:
 
 build-archive-job:
   stage: build
-  image: ruby:3.3-alpine
+  image: ruby:4-alpine
   before_script:
     - apk add --no-cache git jq # wget
   script:
-    - MOD_VERSION=$(jq -r '.version' "$MOD_NAME/info.json")
-    - FOLDER_NAME="${MOD_NAME}_${MOD_VERSION}"
-    - ARCHIVE_NAME="${FOLDER_NAME}.zip"
-
-    - echo "Building archive ${ARCHIVE_NAME}"
-
-    - mkdir -p artifacts/${MOD_NAME}/test
-    - mkdir -p artifacts/${MOD_NAME}/scenarios
-
-    - git archive --worktree-attributes --format=zip HEAD:"${MOD_NAME}" -o "artifacts/${MOD_NAME}/${ARCHIVE_NAME}" --prefix="${FOLDER_NAME}/"
-    - cp -r ${MOD_NAME}/test/* artifacts/${MOD_NAME}/test/
-
-    - ls -1 "${MOD_NAME}"/test/saves/ 2>/dev/null > "artifacts/${MOD_NAME}/save_names.txt" || true
-    - ls -1 "${MOD_NAME}"/scenarios/ 2>/dev/null | grep "__funit__" > "artifacts/${MOD_NAME}/scenario_names.txt" || true
-    - if [ -s "artifacts/${MOD_NAME}/scenario_names.txt" ]; then
-        cat "artifacts/${MOD_NAME}/scenario_names.txt" | xargs -I {} cp -rv "${MOD_NAME}/scenarios/{}" "artifacts/${MOD_NAME}/scenarios/";
-      fi
-
-    # - wget https://gitlab.com/jfletcher94/funit/-/raw/master/scripts/expand_dependencies.rb
     - |
-      if [ -f "artifacts/${MOD_NAME}/test/mod-list.json" ]; then
-        ruby scripts/expand_dependencies.rb -i "${MOD_NAME}/info.json" -m "artifacts/${MOD_NAME}/test/mod-list.json" -o "artifacts/${MOD_NAME}/test/mod-list.json"
-      fi
+      MOD_VERSION=$(jq -r '.version' "$MOD_NAME/info.json")
+      FOLDER_NAME="${MOD_NAME}_${MOD_VERSION}"
+      ARCHIVE_NAME="${FOLDER_NAME}.zip"
+
+      echo "Building archive ${ARCHIVE_NAME}"
+
+      mkdir -p artifacts/${MOD_NAME}/scenarios
+
+      git archive --worktree-attributes --format=zip HEAD:"${MOD_NAME}" -o "artifacts/${MOD_NAME}/${ARCHIVE_NAME}" --prefix="${FOLDER_NAME}/"
+
+      ls -1 "${MOD_NAME}"/test/saves/ 2>/dev/null > "artifacts/${MOD_NAME}/save_names.txt" || true
+      ls -1 "${MOD_NAME}"/scenarios/ 2>/dev/null | grep "__funit__" > "artifacts/${MOD_NAME}/scenario_names.txt" || true
+
+      # wget https://gitlab.com/jfletcher94/funit/-/raw/master/scripts/expand_dependencies.rb
       if [ -s "artifacts/${MOD_NAME}/scenario_names.txt" ]; then
         for scn in $(cat artifacts/${MOD_NAME}/scenario_names.txt); do
-          if [ -f "artifacts/${MOD_NAME}/scenarios/$scn/mod-list.json" ]; then
+          cp -r "${MOD_NAME}/scenarios/$scn" "artifacts/${MOD_NAME}/scenarios/"
+          if [ -s "artifacts/${MOD_NAME}/scenarios/$scn/mod-list.json" ]; then
             ruby scripts/expand_dependencies.rb -i "${MOD_NAME}/info.json" -m "artifacts/${MOD_NAME}/scenarios/$scn/mod-list.json" -o "artifacts/${MOD_NAME}/scenarios/$scn/mod-list.json"
           fi
         done
       fi
-
-    - echo "ARCHIVE_NAME=${ARCHIVE_NAME}" >> build-${MOD_NAME}.env
+      if [ -s "${MOD_NAME}/test/mod-list.json" ]; then
+        ruby scripts/expand_dependencies.rb -i "${MOD_NAME}/info.json" -m "${MOD_NAME}/test/mod-list.json" -o "${MOD_NAME}/test/mod-list.json"
+      fi
   artifacts:
-    reports:
-      dotenv: build-${MOD_NAME}.env
     paths:
       - artifacts/${MOD_NAME}/
     expire_in: 1 day
@@ -80,11 +72,23 @@ unit-test-job:
   before_script:
     - apk add --no-cache bash
   script:
-    - docker build --build-arg FACTORIO_VERSION=$FACTORIO_VERSION --build-arg USERNAME="${USERNAME}" --build-arg TOKEN="${TOKEN}" --build-arg MOD_NAME="${MOD_NAME}" --build-arg ARCHIVE_NAME="${ARCHIVE_NAME}" -t $IMAGE_NAME:$IMAGE_TAG-${MOD_NAME} .
     - |
+      docker build \
+          --build-arg FACTORIO_VERSION=$FACTORIO_VERSION \
+          --build-arg USERNAME="${USERNAME}" \
+          --build-arg TOKEN="${TOKEN}" \
+          --build-arg MOD_NAME="${MOD_NAME}" \
+          -t $IMAGE_NAME:$IMAGE_TAG-${MOD_NAME} \
+          .
       set +e
       bash -c '
-        docker run --rm -e MOD_NAME=$MOD_NAME -e USERNAME="${USERNAME}" -e TOKEN="${TOKEN}" -e TIMEOUT=$TIMEOUT $IMAGE_NAME:$IMAGE_TAG-${MOD_NAME} 2>&1 | tee artifacts/${MOD_NAME}/funit.log
+        docker run --rm \
+            -e MOD_NAME=$MOD_NAME \
+            -e USERNAME="${USERNAME}" \
+            -e TOKEN="${TOKEN}" \
+            -e TIMEOUT=$TIMEOUT \
+            $IMAGE_NAME:$IMAGE_TAG-${MOD_NAME} \
+          2>&1 | tee artifacts/${MOD_NAME}/funit.log
         exit ${PIPESTATUS[0]}
       '
       EXIT_CODE=$?
@@ -110,7 +114,7 @@ unit-test-job:
 
 parse-results-job:
   stage: test
-  image: ruby:3.3-alpine
+  image: ruby:4-alpine
   needs:
     - job: unit-test-job
   # before_script:
@@ -154,9 +158,9 @@ deploy-job:
       PACKAGE_BASE_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${MOD_NAME}/${MOD_VERSION}"
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file "${MOD_ZIP}" "${PACKAGE_BASE_URL}/${MOD_FILENAME}"
       UPLOAD_URL=$(curl -s -X POST \
-        -H "Authorization: Bearer ${API_KEY}" \
-        -F "mod=${MOD_NAME}" \
-        https://mods.factorio.com/api/v2/mods/releases/init_upload \
+          -H "Authorization: Bearer ${API_KEY}" \
+          -F "mod=${MOD_NAME}" \
+          https://mods.factorio.com/api/v2/mods/releases/init_upload \
         | jq -r '.upload_url') && \
       curl -X POST -F "file=@${MOD_ZIP}" "${UPLOAD_URL}"
   rules:
@@ -174,10 +178,10 @@ upload-readme-job:
   script:
     - |
       curl -X POST \
-      -H "Authorization: Bearer ${API_KEY}" \
-      -F "mod=${MOD_NAME}" \
-      -F "description=<${MOD_NAME}/README.md" \
-      https://mods.factorio.com/api/v2/mods/edit_details
+          -H "Authorization: Bearer ${API_KEY}" \
+          -F "mod=${MOD_NAME}" \
+          -F "description=<${MOD_NAME}/README.md" \
+          https://mods.factorio.com/api/v2/mods/edit_details
   rules:
      - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE != "schedule"
        changes:
