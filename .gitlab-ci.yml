@@ -80,6 +80,7 @@ unit-test-job:
           --build-arg MOD_NAME="${MOD_NAME}" \
           -t $IMAGE_NAME:$IMAGE_TAG-${MOD_NAME} \
           .
+      mkdir -p artifacts/${MOD_NAME}/script-output
       set +e
       bash -c '
         docker run --rm \
@@ -87,6 +88,7 @@ unit-test-job:
             -e USERNAME="${USERNAME}" \
             -e TOKEN="${TOKEN}" \
             -e TIMEOUT=$TIMEOUT \
+            -v artifacts/${MOD_NAME}/script-output:/factorio/script-output \
             $IMAGE_NAME:$IMAGE_TAG-${MOD_NAME} \
           2>&1 | tee artifacts/${MOD_NAME}/funit.log
         exit ${PIPESTATUS[0]}
@@ -99,6 +101,7 @@ unit-test-job:
     when: always
     paths:
       - artifacts/${MOD_NAME}/funit.log
+      - artifacts/${MOD_NAME}/script-output/*
     expire_in: 1 month
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
