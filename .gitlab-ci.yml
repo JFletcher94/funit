@@ -88,7 +88,7 @@ unit-test-job:
             -e USERNAME="${USERNAME}" \
             -e TOKEN="${TOKEN}" \
             -e TIMEOUT=$TIMEOUT \
-            -v artifacts/${MOD_NAME}/reports:/factorio/script-output \
+            -v ${PWD}/artifacts/${MOD_NAME}/reports:/factorio/script-output \
             $IMAGE_NAME:$IMAGE_TAG-${MOD_NAME} \
           2>&1 | tee artifacts/${MOD_NAME}/funit.log
         exit ${PIPESTATUS[0]}
