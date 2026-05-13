@@ -24,7 +24,7 @@ runner.AFTER_EACH = 3
 --- Register a mod for testing. Must be called once before adding tests.
 ---
 --- @param mod_name string The internal name of the mod (must be active)
-runner.register = function(mod_name)
+runner.register = function(mod_name, testsuite_name)
     runner._mod_name = mod_name
     runner._tests = {}
     runner._test_names = {}
@@ -33,6 +33,11 @@ runner.register = function(mod_name)
     runner.before_each(nil)
     runner.after_each(nil)
     runner.assert(script.active_mods[mod_name] ~= nil, mod_name.." not active")
+end
+
+--- @param name string? The name of the testsuite for the test report (or nil to disable)
+runner.report = function  (name)
+    runner._testsuite_name = name
 end
 
 --- Set a function to run before each test.
@@ -122,6 +127,9 @@ end
 ---
 --- @param message string The message to log
 runner.log = function(message)
+    if runner._logs then
+        table.insert(runner._logs, message)
+    end
     game.print({"mod-message.funit-log", message}, {game_state = false})
     log(runner._log_prefix..(runner._mod_name or "nil").."__"..message)
 end
@@ -130,24 +138,79 @@ end
 -- Private / Internal Implementation
 -- ============================================================================
 
---- Log test success message in FUnit logging format.
+--- Record and log test success.
 ---
 --- @param message string The success message
 runner._succeed = function(message)
+    if runner._testsuite then
+        local testcase = {
+            name = runner._test_names[runner._test_idx],
+            classname = runner._mod_name,
+            time = 0.0 -- TODO
+        }
+        table.insert(runner._testsuite.testcases, testcase)
+    end
+
     runner.log(runner._test_success..message)
 end
 
---- Log test failure message in FUnit logging format.
+--- Record and log test failure.
 ---
 --- @param message string The failure message
 runner._fail = function(message)
+    if runner._testsuite then
+        runner._testsuite.failures = runner._testsuite.failures + 1
+        local testcase = {
+            name = runner._test_names[runner._test_idx],
+            classname = runner._mod_name,
+            time = 0.0, -- TODO
+            failure = {
+                message = message,
+                type = "AssertionError"
+            }
+        }
+        if #runner._logs == 1 then
+            testcase.failure.content = runner._logs[1]
+        elseif #runner._logs > 1 then
+            local logs = runner._logs[1]
+            for i = 2,#runner._logs do
+                logs = logs.."\n"..runner._logs[i]
+            end
+            testcase.failure.content = logs
+        end
+        table.insert(runner._testsuite.testcases, testcase)
+    end
+
     runner.log(runner._test_failure..message)
 end
 
---- Log test error message in FUnit logging format.
+--- Record and log test error.
 ---
 --- @param message string The error message
 runner._error = function(message)
+    if runner._testsuite then
+        runner._testsuite.errors = runner._testsuite.errors + 1
+        local testcase = {
+            name = runner._test_names[runner._test_idx],
+            classname = runner._mod_name,
+            time = 0.0, -- TODO
+            error = {
+                message = message,
+                type = "RuntimeError"
+            }
+        }
+        if #runner._logs == 1 then
+            testcase.error.content = runner._logs[1]
+        elseif #runner._logs > 1 then
+            local logs = runner._logs[1]
+            for i = 2,#runner._logs do
+                logs = logs.."\n"..runner._logs[i]
+            end
+            testcase.error.content = logs
+        end
+        table.insert(runner._testsuite.testcases, testcase)
+    end
+
     runner.log(runner._test_error..message)
 end
 
@@ -274,8 +337,14 @@ runner._run_next_test = function()
         script.on_event(event_id, nil)
     end
     if runner._test_idx == runner._tests_count then
-        runner.log("====END====")
+        if runner._testsuite then
+            helpers.write_file(
+                "funit-report-"..runner._testsuite_name..".json",
+                helpers.table_to_json(runner._testsuite)
+            )
+        end
         script.on_nth_tick(1, nil)
+        runner.log("====END====")
         return
     end
 
@@ -283,6 +352,7 @@ runner._run_next_test = function()
     runner._registered_events = {}
     runner._test_idx = runner._test_idx + 1
     runner._current_stage = runner.BEGIN
+    runner._logs = {}
     runner._run_next_test()
 end
 
@@ -295,6 +365,17 @@ runner._run = function()
     runner._current_stage = runner.BEGIN
     script.on_nth_tick(1, runner._check_for_timeout)
     runner.log("====BEGIN "..tostring(runner._tests_count).." TESTS====")
+    if runner._testsuite_name then
+        runner._testsuite = {
+            name = runner._testsuite_name,
+            tests = runner._tests_count,
+            failures = 0,
+            errors = 0,
+            skipped = 0,
+            testcases = {}
+        }
+    end
+    runner._logs = {}
     runner._run_next_test()
 end
 
