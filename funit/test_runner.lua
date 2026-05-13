@@ -27,7 +27,7 @@ runner.AFTER_EACH = 3
 --- @param testsuite_name string? The name of the testsuite, only used for test report
 runner.register = function(mod_name, testsuite_name)
     runner._mod_name = mod_name
-    runner._testsuite_name = testsuite_name or script.level.name
+    runner._testsuite_name = testsuite_name
     runner._tests = {}
     runner._test_names = {}
     runner._status = {}
@@ -335,7 +335,7 @@ runner._run_next_test = function()
     end
     if runner._test_idx == runner._tests_count then
         helpers.write_file{
-            filename = "funit-report--"..runner._testsuite_name..".json",
+            filename = "funit-report-"..runner._testsuite_name..".json",
             data = helpers.table_to_json(runner._testsuite),
             for_player = 0
         }
@@ -362,6 +362,7 @@ runner._run = function()
     runner._current_stage = runner.BEGIN
     script.on_nth_tick(1, runner._check_for_timeout)
     runner.log("====BEGIN "..tostring(runner._tests_count).." TESTS====")
+    runner._testsuite_name = tostring(runner._testsuite_name or script.level.name)
     runner._testsuite = {
         name = runner._testsuite_name,
         tests = runner._tests_count,
