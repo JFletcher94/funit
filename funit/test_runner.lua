@@ -24,6 +24,7 @@ runner.AFTER_EACH = 3
 --- Register a mod for testing. Must be called once before adding tests.
 ---
 --- @param mod_name string The internal name of the mod (must be active)
+--- @param testsuite_name string The name of the testsuite, only used for test report
 runner.register = function(mod_name, testsuite_name)
     runner._mod_name = mod_name
     runner._testsuite_name = testsuite_name or mod_name
@@ -134,7 +135,7 @@ end
 -- Private / Internal Implementation
 -- ============================================================================
 
---- Log test success message in FUnit logging format.
+--- Record and log test success.
 ---
 --- @param message string The success message
 runner._succeed = function(message)
@@ -150,7 +151,7 @@ runner._succeed = function(message)
     runner.log(runner._test_success..message)
 end
 
---- Log test failure message in FUnit logging format.
+--- Record and log test failure.
 ---
 --- @param message string The failure message
 runner._fail = function(message)
@@ -168,7 +169,7 @@ runner._fail = function(message)
             testcase.failure.content = runner._logs[1]
         elseif #runner._logs > 1 then
             local logs = runner._logs[1]
-            for i = 2..#runner._logs do
+            for i = 2,#runner._logs do
                 logs = logs.."\n"..runner._logs[i]
             end
             testcase.failure.content = logs
@@ -179,7 +180,7 @@ runner._fail = function(message)
     runner.log(runner._test_failure..message)
 end
 
---- Log test error message in FUnit logging format.
+--- Record and log test error.
 ---
 --- @param message string The error message
 runner._error = function(message)
@@ -197,7 +198,7 @@ runner._error = function(message)
             testcase.error.content = runner._logs[1]
         elseif #runner._logs > 1 then
             local logs = runner._logs[1]
-            for i = 2..#runner._logs do
+            for i = 2,#runner._logs do
                 logs = logs.."\n"..runner._logs[i]
             end
             testcase.error.content = logs
