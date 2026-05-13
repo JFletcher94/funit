@@ -110,7 +110,7 @@ unit-test-job:
         - "${MOD_NAME}/**/*.lua"
         - "${MOD_NAME}/**/*.json"
         - "${MOD_NAME}/scenarios/__funit__*/**"
-        - "${MOD_NAME}/test/saves/*
+        - "${MOD_NAME}/test/saves/*"
         - .gitlab-ci.yml
         - Dockerfile
         - entrypoint.sh
@@ -140,6 +140,7 @@ parse-results-job:
         - "${MOD_NAME}/**/*.lua"
         - "${MOD_NAME}/**/*.json"
         - "${MOD_NAME}/scenarios/__funit__*/**"
+        - "${MOD_NAME}/test/saves/*"
         - .gitlab-ci.yml
         - Dockerfile
         - entrypoint.sh
