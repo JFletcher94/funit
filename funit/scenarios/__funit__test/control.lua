@@ -105,9 +105,12 @@ runner.test("Test mock_event", function()
 end)
 
 runner.test("Temp fail", function()
+    runner.log("Hello 0")
     runner.assert(false, "Intentional failure")
 end)
 
 runner.test("Temp error", function()
+    runner.log("Hello 1")
+    runner.log("Hello 2")
     error("Intentional error")
 end)
