@@ -11,6 +11,8 @@ start_timestamp = 0.0
 timestamp = 0.0
 message = nil
 
+puts "DEPRECATION WARNING: Use parse_funit_json.rb instead"
+
 File.readlines(log_file).each do |line|
   line = line.strip
 

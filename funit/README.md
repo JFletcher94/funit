@@ -18,13 +18,14 @@ _All code examples in this section are placed in a test scenario's `control.lua`
 
 ### Basic Functions
 
-#### `register` and `test`
+#### `register`, `test` and `report`
 
-To use FUnit, you need to `register` a mod; FUnit will validate that this mod is active. You will also need to create at least one `test` to run:
+To use FUnit, you need to `register` a mod; FUnit will validate that this mod is active. You will also need to create at least one `test` to run. Optionally, you can call `report` to have FUnit save a test report as a JSON file in the [`script-output` directory](https://wiki.factorio.com/Application_directory#User_data_directory).
 
 ```lua
 local runner = require("__funit__.test_runner")
 runner.register("my-mod") -- Uses internal mod name
+runner.report("my-testsuite") -- Report saved as funit-report-my-testsuite.json
 
 runner.test(
     "My test", -- Test name
