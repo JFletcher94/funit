@@ -31,6 +31,7 @@ if json_files.empty?
   abort "Error: No .json files found in '#{input_dir}'."
 end
 
+fail_job = false
 doc = REXML::Document.new
 doc << REXML::XMLDecl.new('1.0', 'UTF-8')
 testsuites = REXML::Element.new('testsuites')
@@ -53,12 +54,14 @@ json_files.each do |file|
       testcase.add_attribute('classname', tc['classname'])
       testcase.add_attribute('time',      tc['time'] || 0)
       if tc['error']
+        fail_job = true
         error = REXML::Element.new('error')
         error.add_attribute('message', tc['error']['message'])
         error.add_attribute('type',    tc['error']['type'])
         error.add_text(tc['error']['content'] || '') if tc['error']['content']
         testcase << error
       elsif tc['failure']
+        fail_job = true
         failure = REXML::Element.new('failure')
         failure.add_attribute('message', tc['failure']['message'])
         failure.add_attribute('type',    tc['failure']['type'])
@@ -85,3 +88,6 @@ else
   formatter.write(doc, $stdout)
   puts
 end
+
+exit 1 if fail_job
+exit 0
