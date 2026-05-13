@@ -15,7 +15,7 @@ This repo has several features:
     * [Configurable test runner](entrypoint.sh): automatically sync mods and mod settings, and run multiple test suites.
 * Helper scripts:
     * [Expand dependencies](scripts/expand_dependencies.rb): Recursively expands mod dependencies.
-    * [Parse FUnit log](scripts/parse_funit_log.rb): Parses Factorio logs for FUnit-style messages and writes results to a JUnit-style XML file.
+    * [Parse FUnit json](scripts/parse_funit_json.rb): Parses FUnit's test report json files and saves results to a JUnit-style XML file.
 
 For examples, see:
 
