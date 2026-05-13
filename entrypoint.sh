@@ -121,7 +121,6 @@ if [ -s "scenario_names.txt" ]; then
             rm -f "$EARLY_SUCCESS_FLAG"
             EXIT_CODE=0
         fi
-        ls /opt/factorio
         if [ "$EXIT_CODE" -ne 124 ] && [ "$EXIT_CODE" -ne 0 ]; then
             ANY_FAILURE=$EXIT_CODE
         fi

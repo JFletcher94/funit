@@ -338,8 +338,6 @@ runner._run_next_test = function()
             "funit-report-"..runner._testsuite_name..".json",
             helpers.table_to_json(runner._testsuite)
         )
-        log("funit-report-"..runner._testsuite_name..".json")
-        log(helpers.table_to_json(runner._testsuite)) -- TODO: TEMP
         script.on_nth_tick(1, nil)
         runner.log("====END====")
         return

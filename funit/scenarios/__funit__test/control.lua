@@ -103,3 +103,11 @@ runner.test("Test mock_event", function()
     local event_called_count_1 = remote.call("funit", "get_event_called_count")
     runner.assert(event_called_count_1 == event_called_count_0 + 1, tostring(event_called_count_0).." ~= "..tostring(event_called_count_1))
 end)
+
+runner.test("Temp fail", function()
+    runner.assert(false, "Intentional failure")
+end)
+
+runner.test("Temp error", function()
+    error("Intentional error")
+end)
