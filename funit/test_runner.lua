@@ -160,7 +160,7 @@ runner._fail = function(message)
             classname = runner._mod_name,
             time = 0.0, -- TODO
             failure = {
-                message = message
+                message = message,
                 type = "AssertionError"
             }
         }
@@ -189,7 +189,7 @@ runner._error = function(message)
             classname = runner._mod_name,
             time = 0.0, -- TODO
             error = {
-                message = message
+                message = message,
                 type = "RuntimeError"
             }
         }
