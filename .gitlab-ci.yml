@@ -80,7 +80,7 @@ unit-test-job:
           --build-arg MOD_NAME="${MOD_NAME}" \
           -t $IMAGE_NAME:$IMAGE_TAG-${MOD_NAME} \
           .
-      mkdir -p artifacts/${MOD_NAME}/script-output
+      mkdir -p artifacts/${MOD_NAME}/reports
       set +e
       bash -c '
         docker run --rm \
