@@ -334,11 +334,12 @@ runner._run_next_test = function()
         script.on_event(event_id, nil)
     end
     if runner._test_idx == runner._tests_count then
-        helpers.write_file{
-            filename = "funit-report-"..runner._testsuite_name..".json",
-            data = helpers.table_to_json(runner._testsuite),
-            for_player = 0
-        }
+        helpers.write_file(
+            "funit-report-"..runner._testsuite_name..".json",
+            helpers.table_to_json(runner._testsuite),
+            false,
+            0
+        )
         log(helpers.table_to_json(runner._testsuite)) -- TODO: TEMP
         script.on_nth_tick(1, nil)
         runner.log("====END====")
