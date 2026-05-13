@@ -24,10 +24,8 @@ runner.AFTER_EACH = 3
 --- Register a mod for testing. Must be called once before adding tests.
 ---
 --- @param mod_name string The internal name of the mod (must be active)
---- @param testsuite_name string? The name of the testsuite, only used for test report
 runner.register = function(mod_name, testsuite_name)
     runner._mod_name = mod_name
-    runner._testsuite_name = testsuite_name or mod_name
     runner._tests = {}
     runner._test_names = {}
     runner._status = {}
@@ -35,6 +33,11 @@ runner.register = function(mod_name, testsuite_name)
     runner.before_each(nil)
     runner.after_each(nil)
     runner.assert(script.active_mods[mod_name] ~= nil, mod_name.." not active")
+end
+
+--- @param name string? The name of the testsuite for the test report (or nil to disable)
+runner.report(name)
+    runner._testsuite_name = name
 end
 
 --- Set a function to run before each test.
@@ -334,10 +337,12 @@ runner._run_next_test = function()
         script.on_event(event_id, nil)
     end
     if runner._test_idx == runner._tests_count then
-        helpers.write_file(
-            "funit-report-"..runner._testsuite_name..".json",
-            helpers.table_to_json(runner._testsuite)
-        )
+        if runner._testsuite then
+            helpers.write_file(
+                "funit-report-"..runner._testsuite_name..".json",
+                helpers.table_to_json(runner._testsuite)
+            )
+        end
         script.on_nth_tick(1, nil)
         runner.log("====END====")
         return
@@ -360,14 +365,16 @@ runner._run = function()
     runner._current_stage = runner.BEGIN
     script.on_nth_tick(1, runner._check_for_timeout)
     runner.log("====BEGIN "..tostring(runner._tests_count).." TESTS====")
-    runner._testsuite = {
-        name = runner._testsuite_name,
-        tests = runner._tests_count,
-        failures = 0,
-        errors = 0,
-        skipped = 0,
-        testcases = {}
-    }
+    if runner._testsuite_name then
+        runner._testsuite = {
+            name = runner._testsuite_name,
+            tests = runner._tests_count,
+            failures = 0,
+            errors = 0,
+            skipped = 0,
+            testcases = {}
+        }
+    end
     runner._logs = {}
     runner._run_next_test()
 end

@@ -1,7 +1,6 @@
 require 'optparse'
 require 'json'
 require 'rexml/document'
-require 'rexml/formatters/pretty'
 
 options = {}
 OptionParser.new do |opts|
@@ -28,7 +27,7 @@ end
 
 json_files = Dir.glob(File.join(input_dir, "*.json"))
 if json_files.empty?
-  abort "Error: No .json files found in '#{input_dir}'."
+  abort "Error: No json files found in '#{input_dir}'."
 end
 
 fail_job = false

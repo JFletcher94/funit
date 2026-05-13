@@ -1,6 +1,7 @@
  require('__base__/script/freeplay/control.lua')
 local runner = require("__funit__.test_runner")
-runner.register("funit", "funit-test-scenario")
+runner.register("funit")
+runner.report("funit-test-scenario")
 
 local mock = require("__funit__.mock")
 
@@ -102,15 +103,4 @@ runner.test("Test mock_event", function()
     mock.mock_event({ name = defines.events.script_raised_built })
     local event_called_count_1 = remote.call("funit", "get_event_called_count")
     runner.assert(event_called_count_1 == event_called_count_0 + 1, tostring(event_called_count_0).." ~= "..tostring(event_called_count_1))
-end)
-
-runner.test("Temp fail", function()
-    runner.log("Hello 0")
-    runner.assert(false, "Intentional failure")
-end)
-
-runner.test("Temp error", function()
-    runner.log("Hello 1")
-    runner.log("Hello 2")
-    error("Intentional error")
 end)
