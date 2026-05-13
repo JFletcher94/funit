@@ -36,7 +36,7 @@ runner.register = function(mod_name, testsuite_name)
 end
 
 --- @param name string? The name of the testsuite for the test report (or nil to disable)
-runner.report(name)
+runner.report = function  (name)
     runner._testsuite_name = name
 end
 
