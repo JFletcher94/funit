@@ -24,10 +24,10 @@ runner.AFTER_EACH = 3
 --- Register a mod for testing. Must be called once before adding tests.
 ---
 --- @param mod_name string The internal name of the mod (must be active)
---- @param testsuite_name string The name of the testsuite, only used for test report
+--- @param testsuite_name string? The name of the testsuite, only used for test report
 runner.register = function(mod_name, testsuite_name)
     runner._mod_name = mod_name
-    runner._testsuite_name = testsuite_name or mod_name
+    runner._testsuite_name = testsuite_name or script.level.name
     runner._tests = {}
     runner._test_names = {}
     runner._status = {}
@@ -155,7 +155,8 @@ end
 ---
 --- @param message string The failure message
 runner._fail = function(message)
-    if table._testsuite then
+    if runner._testsuite then
+        runner._testsuite.failures = runner._testsuite.failures + 1
         local testcase = {
             name = runner._test_names[runner._test_idx],
             classname = runner._mod_name,
@@ -184,7 +185,8 @@ end
 ---
 --- @param message string The error message
 runner._error = function(message)
-    if table._testsuite then
+    if runner._testsuite then
+        runner._testsuite.errors = runner._testsuite.errors + 1
         local testcase = {
             name = runner._test_names[runner._test_idx],
             classname = runner._mod_name,
@@ -362,7 +364,10 @@ runner._run = function()
     runner.log("====BEGIN "..tostring(runner._tests_count).." TESTS====")
     runner._testsuite = {
         name = runner._testsuite_name,
-        tests = runner._tests_count
+        tests = runner._tests_count,
+        failures = 0,
+        errors = 0,
+        skipped = 0,
         testcases = {}
     }
     runner._logs = {}
