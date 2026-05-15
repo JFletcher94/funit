@@ -28,9 +28,6 @@ RUN mkdir -p "$MODS"
 RUN envsubst < /server-settings.json > "$CONFIG"/server-settings.json
 RUN envsubst < /player-data.json > /opt/factorio/player-data.json
 
-RUN mkdir -p /factorio/script-output
-RUN chown -R "$USER":"$GROUP" /factorio/script-output
-
 COPY artifacts/*/*.zip /
 COPY artifacts/"$MOD_NAME"/save_names.txt /save_names.txt
 COPY artifacts/"$MOD_NAME"/scenario_names.txt /scenario_names.txt

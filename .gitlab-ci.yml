@@ -85,10 +85,10 @@ unit-test-job:
       set +e
       bash -c '
         docker run --rm \
-            -e MOD_NAME=$MOD_NAME \
+            -e MOD_NAME=${MOD_NAME} \
             -e USERNAME="${USERNAME}" \
             -e TOKEN="${TOKEN}" \
-            -e TIMEOUT=$TIMEOUT \
+            -e TIMEOUT=${TIMEOUT} \
             -v ${PWD}/artifacts/${MOD_NAME}/reports:/opt/factorio/script-output \
             $IMAGE_NAME:$IMAGE_TAG-${MOD_NAME} \
           2>&1 | tee artifacts/${MOD_NAME}/funit.log
@@ -102,7 +102,7 @@ unit-test-job:
     when: always
     paths:
       - artifacts/${MOD_NAME}/funit.log
-      - artifacts/${MOD_NAME}/reports/*
+      - artifacts/${MOD_NAME}/reports/
     expire_in: 1 month
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
