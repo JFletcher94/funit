@@ -23,13 +23,12 @@ jobs:
       image: ruby:4-alpine
     timeout-minutes: 60
     steps:
-    - name: Install dependencies
-      run: apk add --no-cache git jq
     - uses: actions/checkout@v4.1.0
       with:
         fetch-depth: 20
     - name: Build archive
-      run: |
+    - run: apk add --no-cache git jq
+    - run: |
         git config --global --add safe.directory "$GITHUB_WORKSPACE"
         MOD_VERSION=$(jq -r '.version' "$MOD_NAME/info.json")
         FOLDER_NAME="${MOD_NAME}_${MOD_VERSION}"
@@ -56,29 +55,21 @@ jobs:
       with:
         name: "${{ github.job }}"
         retention-days: 1
-        path: artifacts/${MOD_NAME}/
+        path: artifacts/${{ env.MOD_NAME }}/
+
   unit-test-job:
     needs: build-archive-job
     runs-on: ubuntu-latest
     container:
       image: docker:stable
-    if: # Unable to map conditional expression to GitHub Actions equivalent
-#         ${{ github.event_name }} == "merge_request_event" || !(${{ github.ref }} && $CI_OPEN_MERGE_REQUESTS) || ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.ref }} != $CI_DEFAULT_BRANCH
     timeout-minutes: 15
     services:
       docker:dind:
         image: docker:dind
-    env:
-      FACTORIO_VERSION: stable
-      MOD_NAME: funit
-      TIMEOUT: 30s
-      IMAGE_NAME: "$CI_REGISTRY/${{ github.repository }}/factorio-image"
-      IMAGE_TAG: "$FACTORIO_VERSION-${{ github.ref }}"
     steps:
     - uses: actions/checkout@v4.1.0
       with:
         fetch-depth: 20
-        lfs: true
     - uses: actions/download-artifact@v4.1.0
     - run: apk add --no-cache bash
     - run: |
@@ -111,36 +102,28 @@ jobs:
         name: "${{ github.job }}"
         retention-days: 30
         path: |-
-          artifacts/${MOD_NAME}/funit.log
-          artifacts/${MOD_NAME}/reports/
+          artifacts/${{ env.MOD_NAME }}/funit.log
+          artifacts/${{ env.MOD_NAME }}/reports/
+  
   parse-results-job:
     needs: unit-test-job
     runs-on: ubuntu-latest
     container:
       image: ruby:4-alpine
-    if: # Unable to map conditional expression to GitHub Actions equivalent
-#         ${{ github.event_name }} == "merge_request_event" || !(${{ github.ref }} && $CI_OPEN_MERGE_REQUESTS) || ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.ref }} != $CI_DEFAULT_BRANCH
     timeout-minutes: 60
-    env:
-      FACTORIO_VERSION: stable
-      MOD_NAME: funit
-      TIMEOUT: 30s
-      IMAGE_NAME: "$CI_REGISTRY/${{ github.repository }}/factorio-image"
-      IMAGE_TAG: "$FACTORIO_VERSION-${{ github.ref }}"
     steps:
     - uses: actions/checkout@v4.1.0
       with:
         fetch-depth: 20
-        lfs: true
     - uses: actions/download-artifact@v4.1.0
     - run: ruby scripts/parse_funit_json.rb artifacts/${MOD_NAME}/reports -o funit-report-${MOD_NAME}.xml
-#     # 'artifacts.junit' was not transformed because there is no suitable equivalent in GitHub Actions
     - uses: actions/upload-artifact@v4.1.0
       if: always()
       with:
         name: "${{ github.job }}"
         retention-days: 30
         path: funit-report-*.xml
+
   deploy-job:
     needs:
     - build-archive-job
@@ -148,20 +131,12 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: registry.gitlab.com/gitlab-org/cli:latest
-    if: # Unable to map conditional expression to GitHub Actions equivalent
-#         ${{ github.event_name }} == "merge_request_event" || !(${{ github.ref }} && $CI_OPEN_MERGE_REQUESTS) || ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH && ${{ github.event_name }} != "schedule"
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     timeout-minutes: 60
-    env:
-      FACTORIO_VERSION: stable
-      MOD_NAME: funit
-      TIMEOUT: 30s
-      IMAGE_NAME: "$CI_REGISTRY/${{ github.repository }}/factorio-image"
-      IMAGE_TAG: "$FACTORIO_VERSION-${{ github.ref }}"
     steps:
     - uses: actions/checkout@v4.1.0
       with:
         fetch-depth: 20
-        lfs: true
     - uses: actions/download-artifact@v4.1.0
     - run: apk add --no-cache jq curl
     - run: |
@@ -176,25 +151,18 @@ jobs:
             https://mods.factorio.com/api/v2/mods/releases/init_upload \
           | jq -r '.upload_url') && \
         curl -X POST -F "file=@${MOD_ZIP}" "${UPLOAD_URL}"
+
   upload-readme-job:
     needs: build-archive-job
     runs-on: ubuntu-latest
     container:
       image: registry.gitlab.com/gitlab-org/cli:latest
-    if: # Unable to map conditional expression to GitHub Actions equivalent
-#         ${{ github.event_name }} == "merge_request_event" || !(${{ github.ref }} && $CI_OPEN_MERGE_REQUESTS) || ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH && ${{ github.event_name }} != "schedule"
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     timeout-minutes: 60
-    env:
-      FACTORIO_VERSION: stable
-      MOD_NAME: funit
-      TIMEOUT: 30s
-      IMAGE_NAME: "$CI_REGISTRY/${{ github.repository }}/factorio-image"
-      IMAGE_TAG: "$FACTORIO_VERSION-${{ github.ref }}"
     steps:
     - uses: actions/checkout@v4.1.0
       with:
         fetch-depth: 20
-        lfs: true
     - uses: actions/download-artifact@v4.1.0
     - run: apk add --no-cache curl
     - run: |
