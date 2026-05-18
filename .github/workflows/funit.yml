@@ -3,35 +3,34 @@ on:
   push:
   pull_request:
   workflow_dispatch:
-  schedule:
-  - cron: 0 8 1/16 * *
 concurrency:
   group: "${{ github.ref }}"
   cancel-in-progress: true
 env:
+  FACTORIO_VERSION: stable
+  MOD_NAME: funit
+  TIMEOUT: 30s
+  IMAGE_NAME: "$CI_REGISTRY/${{ github.repository }}/factorio-image"
+  IMAGE_TAG: "$FACTORIO_VERSION-${{ github.ref }}"
   TOKEN: "${{ secrets.TOKEN }}"
   USERNAME: "${{ secrets.USERNAME }}"
   API_KEY: "${{ secrets.API_KEY }}"
+
 jobs:
   build-archive-job:
     runs-on: ubuntu-latest
     container:
       image: ruby:4-alpine
-    if: ${{ github.event_name }} == "merge_request_event" || !(${{ github.ref }} && $CI_OPEN_MERGE_REQUESTS) || ${{ github.ref }}
     timeout-minutes: 60
-    env:
-      FACTORIO_VERSION: stable
-      MOD_NAME: funit
-      TIMEOUT: 30s
-      IMAGE_NAME: "$CI_REGISTRY/${{ github.repository }}/factorio-image"
-      IMAGE_TAG: "$FACTORIO_VERSION-${{ github.ref }}"
     steps:
+    - name: Install dependencies
+      run: apk add --no-cache git jq
     - uses: actions/checkout@v4.1.0
       with:
         fetch-depth: 20
         lfs: true
-    - run: apk add --no-cache git jq
-    - run: |
+    - name: Build archive
+      run: |
         MOD_VERSION=$(jq -r '.version' "$MOD_NAME/info.json")
         FOLDER_NAME="${MOD_NAME}_${MOD_VERSION}"
         ARCHIVE_NAME="${FOLDER_NAME}.zip"
