@@ -30,6 +30,7 @@ jobs:
         fetch-depth: 20
     - name: Build archive
       run: |
+        git config --global --add safe.directory "$GITHUB_WORKSPACE"
         MOD_VERSION=$(jq -r '.version' "$MOD_NAME/info.json")
         FOLDER_NAME="${MOD_NAME}_${MOD_VERSION}"
         ARCHIVE_NAME="${FOLDER_NAME}.zip"
