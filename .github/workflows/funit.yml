@@ -10,8 +10,8 @@ env:
   FACTORIO_VERSION: stable
   MOD_NAME: funit
   TIMEOUT: 30s
-  IMAGE_NAME: "$CI_REGISTRY/${{ github.repository }}/factorio-image"
-  IMAGE_TAG: "$FACTORIO_VERSION-${{ github.ref }}"
+  IMAGE_NAME: "${{ format('ghcr.io/{0}/factorio-image', github.repository_owner) }}"
+  IMAGE_TAG: "${{ format('{0}-{1}', env.FACTORIO_VERSION, github.ref_name) }}"
   TOKEN: "${{ secrets.TOKEN }}"
   USERNAME: "${{ secrets.USERNAME }}"
   API_KEY: "${{ secrets.API_KEY }}"
@@ -72,12 +72,13 @@ jobs:
         fetch-depth: 20
     - uses: actions/download-artifact@v4.1.0
     - run: |
+        TAG="$IMAGE_NAME:$IMAGE_TAG"-$(echo $MOD_NAME | tr '[:upper:]' '[:lower:]')
         docker build \
             --build-arg FACTORIO_VERSION=$FACTORIO_VERSION \
             --build-arg USERNAME="${USERNAME}" \
             --build-arg TOKEN="${TOKEN}" \
             --build-arg MOD_NAME="${MOD_NAME}" \
-            -t $IMAGE_NAME:$IMAGE_TAG-${MOD_NAME} \
+            -t ${TAG} \
             .
         mkdir -p artifacts/${MOD_NAME}/reports
         set +e
@@ -88,7 +89,7 @@ jobs:
               -e TOKEN="${TOKEN}" \
               -e TIMEOUT=${TIMEOUT} \
               -v ${PWD}/artifacts/${MOD_NAME}/reports:/opt/factorio/script-output \
-              $IMAGE_NAME:$IMAGE_TAG-${MOD_NAME} \
+              ${TAG} \
             2>&1 | tee artifacts/${MOD_NAME}/funit.log
           exit ${PIPESTATUS[0]}
         '
