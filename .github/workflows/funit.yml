@@ -26,7 +26,6 @@ jobs:
     - uses: actions/checkout@v4.1.0
       with:
         fetch-depth: 20
-    - name: Build archive
     - run: apk add --no-cache git jq
     - run: |
         git config --global --add safe.directory "$GITHUB_WORKSPACE"
