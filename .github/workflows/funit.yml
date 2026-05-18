@@ -10,8 +10,6 @@ env:
   FACTORIO_VERSION: stable
   MOD_NAME: funit
   TIMEOUT: 30s
-  IMAGE_NAME: "ghcr.io/${{ github.repository }}/factorio-image"
-  IMAGE_TAG: "$FACTORIO_VERSION-${{ github.ref }}"
   TOKEN: "${{ secrets.TOKEN }}"
   USERNAME: "${{ secrets.USERNAME }}"
   API_KEY: "${{ secrets.API_KEY }}"
@@ -77,7 +75,7 @@ jobs:
             --build-arg USERNAME="${USERNAME}" \
             --build-arg TOKEN="${TOKEN}" \
             --build-arg MOD_NAME="${MOD_NAME}" \
-            -t $IMAGE_NAME:$IMAGE_TAG-${MOD_NAME} \
+            -t funit-factorio-image \
             .
         mkdir -p artifacts/${MOD_NAME}/reports
         set +e
@@ -88,7 +86,7 @@ jobs:
               -e TOKEN="${TOKEN}" \
               -e TIMEOUT=${TIMEOUT} \
               -v ${PWD}/artifacts/${MOD_NAME}/reports:/opt/factorio/script-output \
-              $IMAGE_NAME:$IMAGE_TAG-${MOD_NAME} \
+              funit-factorio-image \
             2>&1 | tee artifacts/${MOD_NAME}/funit.log
           exit ${PIPESTATUS[0]}
         '
