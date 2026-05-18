@@ -52,7 +52,7 @@ jobs:
       with:
         name: "${{ github.job }}"
         retention-days: 1
-        path: artifacts/${{ env.MOD_NAME }}/
+        path: artifacts/
 
   unit-test-job:
     needs: build-archive-job
@@ -69,6 +69,9 @@ jobs:
       with:
         fetch-depth: 20
     - uses: actions/download-artifact@v4.1.0
+      with:
+        name: build-archive-job
+        path: artifacts
     - run: |
         docker build \
             --build-arg FACTORIO_VERSION=$FACTORIO_VERSION \
@@ -114,6 +117,9 @@ jobs:
       with:
         fetch-depth: 20
     - uses: actions/download-artifact@v4.1.0
+      with:
+        name: unit-test-job
+        path: artifacts
     - run: ruby scripts/parse_funit_json.rb artifacts/${MOD_NAME}/reports -o funit-report-${MOD_NAME}.xml
     - uses: actions/upload-artifact@v4.1.0
       if: always()
