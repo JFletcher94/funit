@@ -28,7 +28,6 @@ jobs:
     - uses: actions/checkout@v4.1.0
       with:
         fetch-depth: 20
-        lfs: true
     - name: Build archive
       run: |
         MOD_VERSION=$(jq -r '.version' "$MOD_NAME/info.json")
