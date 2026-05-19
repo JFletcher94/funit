@@ -81,6 +81,7 @@ jobs:
             -t funit-factorio-image \
             .
         mkdir -p test_artifacts/${MOD_NAME}/reports
+        export REPORTS_DIR="${PWD}/test_artifacts/${MOD_NAME}/reports"
         set +e
         bash -c '
           docker run --rm \
@@ -88,13 +89,13 @@ jobs:
               -e USERNAME="${USERNAME}" \
               -e TOKEN="${TOKEN}" \
               -e TIMEOUT=${TIMEOUT} \
-              -v "${PWD}/test_artifacts/${MOD_NAME}/reports:/opt/factorio/script-output:rw" \
+              -v "${REPORTS_DIR}:/opt/factorio/script-output:rw" \
               funit-factorio-image \
             2>&1 | tee test_artifacts/${MOD_NAME}/funit.log
+            ls ${REPORTS_DIR}
           exit ${PIPESTATUS[0]}
         '
         EXIT_CODE=$?
-        ls ${PWD}/test_artifacts/${MOD_NAME}/reports
         set -e
         exit $EXIT_CODE
     - uses: actions/upload-artifact@v4.1.0
