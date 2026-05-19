@@ -12,7 +12,6 @@ env:
   TIMEOUT: 30s
   USERNAME: "${{ secrets.USERNAME }}"
   TOKEN: "${{ secrets.TOKEN }}"
-  API_KEY: "${{ secrets.API_KEY }}"
 
 jobs:
   build-archive-job:
@@ -125,58 +124,3 @@ jobs:
         name: "${{ github.job }}"
         retention-days: 30
         path: funit-report-*.xml
-
-  deploy-job:
-    needs:
-    - build-archive-job
-    - parse-results-job
-    runs-on: ubuntu-latest
-    container:
-      image: registry.gitlab.com/gitlab-org/cli:latest
-    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
-    timeout-minutes: 60
-    steps:
-    - run: apk add --no-cache git jq curl
-    - uses: actions/checkout@v4.1.0
-      with:
-        fetch-depth: 20
-    - uses: actions/download-artifact@v4.1.0
-      with:
-        name: build-archive-job
-        path: artifacts
-    - run: |
-        MOD_VERSION=$(jq -r '.version' ${MOD_NAME}/info.json 2>/dev/null)
-        MOD_ZIP=artifacts/${MOD_NAME}/${MOD_NAME}_${MOD_VERSION}.zip
-        MOD_FILENAME=$(basename "$MOD_ZIP")
-        PACKAGE_BASE_URL="${{ github.api_url }}/projects/${{ github.repository }}/packages/generic/${MOD_NAME}/${MOD_VERSION}"
-        curl --header "JOB-TOKEN: ${{ github.token }}" --upload-file "${MOD_ZIP}" "${PACKAGE_BASE_URL}/${MOD_FILENAME}"
-        UPLOAD_URL=$(curl -s -X POST \
-            -H "Authorization: Bearer ${API_KEY}" \
-            -F "mod=${MOD_NAME}" \
-            https://mods.factorio.com/api/v2/mods/releases/init_upload \
-          | jq -r '.upload_url') && \
-        curl -X POST -F "file=@${MOD_ZIP}" "${UPLOAD_URL}"
-
-  upload-readme-job:
-    needs: build-archive-job
-    runs-on: ubuntu-latest
-    container:
-      image: registry.gitlab.com/gitlab-org/cli:latest
-    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
-    timeout-minutes: 60
-    steps:
-    - run: apk add --no-cache git curl
-    - uses: actions/checkout@v4.1.0
-      with:
-        fetch-depth: 20
-    - uses: actions/download-artifact@v4.1.0
-      with:
-        name: build-archive-job
-        path: artifacts
-    - run: |
-        curl -X POST \
-            -H "Authorization: Bearer ${API_KEY}" \
-            -F "mod=${MOD_NAME}" \
-            -F "description=<${MOD_NAME}/README.md" \
-            https://mods.factorio.com/api/v2/mods/edit_details
-
