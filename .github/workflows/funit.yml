@@ -80,8 +80,8 @@ jobs:
             --build-arg MOD_NAME="${MOD_NAME}" \
             -t funit-factorio-image \
             .
-        mkdir -p test_artifacts/${MOD_NAME}/reports
-        export REPORTS_DIR="${PWD}/test_artifacts/${MOD_NAME}/reports"
+        mkdir -p /github/workspace/test_artifacts/${MOD_NAME}/reports
+        export REPORTS_DIR="/github/workspace/test_artifacts/${MOD_NAME}/reports"
         set +e
         bash -c '
           docker run --rm \
@@ -91,12 +91,14 @@ jobs:
               -e TIMEOUT=${TIMEOUT} \
               -v "${REPORTS_DIR}:/opt/factorio/script-output:rw" \
               funit-factorio-image \
-            2>&1 | tee test_artifacts/${MOD_NAME}/funit.log
+            2>&1 | tee /github/workspace/test_artifacts/${MOD_NAME}/funit.log
+          echo ${REPORTS_DIR}
+          ls ${REPORTS_DIR}
           exit ${PIPESTATUS[0]}
         '
+        EXIT_CODE=$?
         echo ${REPORTS_DIR}
         ls ${REPORTS_DIR}
-        EXIT_CODE=$?
         set -e
         exit $EXIT_CODE
     - uses: actions/upload-artifact@v4.1.0
@@ -104,7 +106,7 @@ jobs:
       with:
         name: "${{ github.job }}"
         retention-days: 30
-        path: test_artifacts
+        path: /github/workspace/test_artifacts
   
   parse-results-job:
     needs: unit-test-job
