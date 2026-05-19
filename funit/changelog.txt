@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.5.1
+  Minor Features:
+    - Test runner will now log the filename if a test report was written.
+  Info:
+    - Updated README.
+---------------------------------------------------------------------------------------------------
 Version: 0.5.0
   Features:
     - Test runner can now write test report to JSON file.

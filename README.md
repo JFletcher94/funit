@@ -4,6 +4,11 @@
 
 Funit is a unit testing framework for Factorio mods. Factorio is automation game, after all—stop hand-crafting your tests!
 
+You can read my articles on automated testing for Factorio mods at The Foundry:
+
+* [Part 1: Creating Automated Tests](https://www.foundrygg.com/blog/automated-testing-1)
+* [Part 2: Running Tests in CI Pipelines](https://www.foundrygg.com/blog/automated-testing-2)
+
 This repo has several features:
 
 * FUnit, a Factorio utility mod for writing unit tests:

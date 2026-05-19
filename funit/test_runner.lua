@@ -24,7 +24,7 @@ runner.AFTER_EACH = 3
 --- Register a mod for testing. Must be called once before adding tests.
 ---
 --- @param mod_name string The internal name of the mod (must be active)
-runner.register = function(mod_name, testsuite_name)
+runner.register = function(mod_name)
     runner._mod_name = mod_name
     runner._tests = {}
     runner._test_names = {}
@@ -100,10 +100,15 @@ runner.on_event_do = function(event, action, filters, timeout_ticks)
     end, filters)
 end
 
+--- Perform an action once some condition has been met.
+--- The condition is checked once each tick.
+--- 
 --- TODO
 ---
+--- @param predicate fun() The condition to check each tick
+--- @param action fun() The handler for the event
 --- @param timeout_ticks integer? Fail the test if condition not met after this many ticks; must be > 0
-runner.after_condition_met_do = function(predicate, timeout_ticks)
+runner.after_condition_met_do = function(predicate, action, timeout_ticks)
     assert(false, "Not yet implemented!")
 end
 
@@ -124,6 +129,7 @@ runner.assert = function(bool, message)
 end
 
 --- Log a message in the FUnit logging format.
+--- The message is also printed to the user in-game.
 ---
 --- @param message string The message to log
 runner.log = function(message)
@@ -338,10 +344,10 @@ runner._run_next_test = function()
     end
     if runner._test_idx == runner._tests_count then
         if runner._testsuite then
-            helpers.write_file(
-                "funit-report-"..runner._testsuite_name..".json",
-                helpers.table_to_json(runner._testsuite)
-            )
+            local filename = "funit-report-"..tostring(runner._testsuite_name)..".json"
+            local report = helpers.table_to_json(runner._testsuite)
+            helpers.write_file(filename, report)
+            runner.log("Report written to 'script-output/"..filename.."'")
         end
         script.on_nth_tick(1, nil)
         runner.log("====END====")

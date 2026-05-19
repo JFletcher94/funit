@@ -2,13 +2,16 @@
 
 # FUnit
 
-FUnit is a utility mod to help make testing and project automation easier for other Factorio mods. It does nothing on its own.
-
-Examples from my mods:
+FUnit is a utility mod to help make testing and project automation easier for other Factorio mods. It does nothing on its own. Examples from my mods:
 
 * [FUnit's own tests](https://gitlab.com/jfletcher94/funit/-/blob/master/funit/scenarios/__funit__test/control.lua)
 * [Planet Crucible](https://gitlab.com/jfletcher94/factorio-mods/-/tree/master/planet-crucible/scenarios)
 * [Rigor Module](https://gitlab.com/jfletcher94/factorio-mods/-/tree/master/rigor-module/scenarios)
+
+You can read my articles on automated testing for Factorio mods at The Foundry:
+
+* [Part 1: Creating Automated Tests](https://www.foundrygg.com/blog/automated-testing-1)
+* [Part 2: Running Tests in CI Pipelines](https://www.foundrygg.com/blog/automated-testing-2)
 
 ## FUnit Test Runner
 
@@ -25,7 +28,7 @@ To use FUnit, you need to `register` a mod; FUnit will validate that this mod is
 ```lua
 local runner = require("__funit__.test_runner")
 runner.register("my-mod") -- Uses internal mod name
-runner.report("my-testsuite") -- Report saved as funit-report-my-testsuite.json
+runner.report("1") -- (Optional) test report saved to funit-report-1.json
 
 runner.test(
     "My test", -- Test name
@@ -35,7 +38,7 @@ runner.test(
 )
 ```
 
-This is the minimum required for FUnit to run.
+This is the minimum that's required for FUnit to run.
 
 #### `before_each` and `after_each`
 
@@ -245,8 +248,8 @@ This will cause `my_function` to run _within your mod's Lua enviornment_.
 
 #### Use `LuaEntity.name_tag`
 
-In the map editor, you can assign a [name tag](https://lua-api.factorio.com/latest/classes/LuaEntity.html#name_tag) to any entity. An entity's name tag is accessible at runtime as the `LuaEntity.name_tag` field. Name tags have enforced uniqueness, so you can use them reliably get a specific entity.
+In the map editor, you can assign a [name tag](https://lua-api.factorio.com/latest/classes/LuaEntity.html#name_tag) to any entity. An entity's name tag is accessible at runtime as the `LuaEntity.name_tag` field. Name tags have enforced uniqueness, so you can use them to reliably get a specific entity.
 
 ### Disclaimer
 
-Funit was designed for my usecase, which is mainly running automated tests within a CI environment using a headless Factorio server. I've tried to make the functionality flexible (and more features are still planned), but the project's scope is still relatively narrow. Some of the features (e.g. the logging format) are coupled to [other](https://gitlab.com/jfletcher94/funit/-/blob/master/.gitlab-ci.yml) [parts](https://gitlab.com/jfletcher94/funit/-/blob/master/Dockerfile) of the [repo](https://gitlab.com/jfletcher94/funit/-/blob/master/entrypoint.sh) which are not part of the mod itself.
+FUnit was designed for my usecase, which is mainly running automated tests within GitLab-CI using a headless Factorio server. I've tried to make the functionality flexible (and some more features are still planned), but the project's scope is still relatively narrow. Some of the features (e.g. the logging/report formats) are coupled to [other](https://gitlab.com/jfletcher94/funit/-/blob/master/.gitlab-ci.yml) [parts](https://gitlab.com/jfletcher94/funit/-/blob/master/Dockerfile) of the [repo](https://gitlab.com/jfletcher94/funit/-/blob/master/entrypoint.sh) which are not part of the mod itself.
