@@ -88,7 +88,7 @@ jobs:
               -e USERNAME="${USERNAME}" \
               -e TOKEN="${TOKEN}" \
               -e TIMEOUT=${TIMEOUT} \
-              -v ${PWD}/test_artifacts/${MOD_NAME}/reports:/opt/factorio/script-output:rw \
+              -v "${{ github.workspace }}/artifacts/${MOD_NAME}/reports:/opt/factorio/script-output:rw" \
               funit-factorio-image \
             2>&1 | tee test_artifacts/${MOD_NAME}/funit.log
           exit ${PIPESTATUS[0]}
