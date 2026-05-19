@@ -338,10 +338,10 @@ runner._run_next_test = function()
     end
     if runner._test_idx == runner._tests_count then
         if runner._testsuite then
-            helpers.write_file(
-                "funit-report-"..runner._testsuite_name..".json",
-                helpers.table_to_json(runner._testsuite)
-            )
+            local filename = "funit-report-"..tostring(runner._testsuite_name)..".json"
+            local report = helpers.table_to_json(runner._testsuite)
+            helpers.write_file(filename, report)
+            runner.log("Report written to 'script-output/"..filename.."'")
         end
         script.on_nth_tick(1, nil)
         runner.log("====END====")
