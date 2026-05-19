@@ -37,4 +37,7 @@ COPY entrypoint.sh /
 RUN chmod +x /entrypoint.sh
 RUN chown -R "$USER":"$GROUP" /entrypoint.sh
 
+RUN mkdir -p /opt/factorio/script-output
+RUN chown -R "$USER":"$GROUP" /opt/factorio/script-output
+
 ENTRYPOINT ["/entrypoint.sh"]
