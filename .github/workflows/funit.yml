@@ -92,9 +92,10 @@ jobs:
               -v "${REPORTS_DIR}:/opt/factorio/script-output:rw" \
               funit-factorio-image \
             2>&1 | tee test_artifacts/${MOD_NAME}/funit.log
-            ls ${REPORTS_DIR}
           exit ${PIPESTATUS[0]}
         '
+        echo ${REPORTS_DIR}
+        ls ${REPORTS_DIR}
         EXIT_CODE=$?
         set -e
         exit $EXIT_CODE
