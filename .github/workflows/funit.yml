@@ -117,7 +117,8 @@ jobs:
       with:
         name: unit-test-job
         path: test_artifacts
-    - run: ruby scripts/parse_funit_log.rb test_artifacts/${MOD_NAME}/funit.log -o funit-report-${MOD_NAME}.xml
+    # - run: wget https://gitlab.com/jfletcher94/funit/-/raw/master/scripts/parse_funit_log.rb
+    - run: ruby scripts/parse_funit_log.rb test_artifacts/${MOD_NAME}/funit.log funit-report-${MOD_NAME}.xml
     - uses: actions/upload-artifact@v4.1.0
       if: always()
       with:
