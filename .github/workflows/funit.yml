@@ -93,6 +93,14 @@ jobs:
             2>&1 | tee test_artifacts/${MOD_NAME}/funit.log
           exit ${PIPESTATUS[0]}
         '
+        echo ${{ github.workspace }}
+        ls ${{ github.workspace }}
+        ls
+          
+
+
+         
+
         EXIT_CODE=$?
         set -e
         exit $EXIT_CODE
