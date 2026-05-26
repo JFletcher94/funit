@@ -36,7 +36,7 @@ runner.register = function(mod_name)
 end
 
 --- @param name string? The name of the testsuite for the test report (or nil to disable)
-runner.report = function  (name)
+runner.report = function(name)
     runner._testsuite_name = name
 end
 
@@ -151,7 +151,7 @@ runner._succeed = function(message)
     if runner._testsuite then
         local testcase = {
             name = runner._test_names[runner._test_idx],
-            classname = runner._mod_name,
+            classname = runner._testsuite_name,
             time = 0.0 -- TODO
         }
         table.insert(runner._testsuite.testcases, testcase)
@@ -168,7 +168,7 @@ runner._fail = function(message)
         runner._testsuite.failures = runner._testsuite.failures + 1
         local testcase = {
             name = runner._test_names[runner._test_idx],
-            classname = runner._mod_name,
+            classname = runner._testsuite_name,
             time = 0.0, -- TODO
             failure = {
                 message = message,
@@ -198,7 +198,7 @@ runner._error = function(message)
         runner._testsuite.errors = runner._testsuite.errors + 1
         local testcase = {
             name = runner._test_names[runner._test_idx],
-            classname = runner._mod_name,
+            classname = runner._testsuite_name,
             time = 0.0, -- TODO
             error = {
                 message = message,

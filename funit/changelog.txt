@@ -1,4 +1,8 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.5.2
+  Changes:
+    - Test report now uses report name for classname.
+---------------------------------------------------------------------------------------------------
 Version: 0.5.1
   Minor Features:
     - Test runner will now log the filename if a test report was written.

@@ -28,7 +28,7 @@ To use FUnit, you need to `register` a mod; FUnit will validate that this mod is
 ```lua
 local runner = require("__funit__.test_runner")
 runner.register("my-mod") -- Uses internal mod name
-runner.report("1") -- (Optional) test report saved to funit-report-1.json
+runner.report("123") -- (Optional) test report saved to funit-report-123.json
 
 runner.test(
     "My test", -- Test name
@@ -144,7 +144,7 @@ runner.test(
 
 #### Chaining Calls
 
-FUnit does not support multiple simultaneous delayed invocations of the same type. Calling `after_n_ticks_do` a second time before first has begun its callback, will result in an error; calling `on_event_do` a second time (_for the same event type_) before the first has begun its callback will overwrite the first.
+FUnit does not support multiple simultaneous delayed invocations of the same type. Calling `after_n_ticks_do` a second time, before first has begun its callback, will result in an error; calling `on_event_do` a second time (_for the same event type_) before the first has begun its callback will overwrite the first.
 
 To implement test logic that requires multiple of the same delayed invocation, they need to be chained together (nested):
 
@@ -166,7 +166,7 @@ runner.test(
 
 ## FUnit Event Mocking
 
-Event handlers can be important to test, but it's not always feasible to get real events to be fired in a contrived testing environment; for example, events that are trigger by player actions (especially in a headless CI environment). To help test event handlers in such cases, FUnit includes a `mock` utility for mocking events.
+Event handlers can be important to test, but it's not always feasible to get real events to be fired in a contrived testing environment, for example events that are trigger by player actions (especially in a headless CI environment). To help test event handlers in such cases, FUnit includes a `mock` utility for mocking events.
 
 **NOTE:**
 
