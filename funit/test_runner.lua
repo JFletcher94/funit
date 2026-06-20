@@ -84,7 +84,7 @@ end
 --- Non-nested invocations will overwrite each other.
 ---
 --- @param event LuaEventType The event to invoke the handler on
---- @param action fun() The handler for the event
+--- @param action fun(EventData) The handler for the event
 --- @param filters EventFilter? The filters for this event
 --- @param timeout_ticks integer? Fail the test if event is not fired after this many ticks; must be > 0
 runner.on_event_do = function(event, action, filters, timeout_ticks)
@@ -93,10 +93,10 @@ runner.on_event_do = function(event, action, filters, timeout_ticks)
     runner.assert(event_id ~= defines.events.on_tick, "Cannot use 'defines.events.on_tick'; use after_n_ticks_do instead")
     runner.assert(not timeout_ticks or timeout_ticks > 0, "timeout_ticks must be > 0: "..tostring(timeout_ticks))
     runner._registered_events[event_id] = (timeout_ticks and game.tick + timeout_ticks) or 0 -- 0 means never timeout
-    script.on_event(event, function()
+    script.on_event(event, function(event_data)
         runner._registered_events[event_id] = nil
         script.on_event(event, nil)
-        runner._run_and_verify(action(event), runner._test_names[runner._test_idx].." ("..event_id..")")
+        runner._run_and_verify(action(event_data), runner._test_names[runner._test_idx].." ("..event_id..")")
     end, filters)
 end
 

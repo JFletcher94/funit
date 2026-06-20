@@ -1,4 +1,8 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.5.3
+  Bugfixes:
+    - Fixed event data not being passed to action for on_event_do.
+---------------------------------------------------------------------------------------------------
 Version: 0.5.2
   Changes:
     - Test report now uses report name for classname.
