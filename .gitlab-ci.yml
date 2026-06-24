@@ -7,9 +7,9 @@
 # not apply to general improvements that would benefit the original project.
 
 variables:
-  FACTORIO_VERSION: stable
+  FACTORIO_VERSION: latest
   MOD_NAME: funit
-  TIMEOUT: 30s
+  TIMEOUT: 60s
   IMAGE_NAME: $CI_REGISTRY/$CI_PROJECT_PATH/factorio-image
   IMAGE_TAG: $FACTORIO_VERSION-$CI_COMMIT_REF_NAME
 
