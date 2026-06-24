@@ -5,6 +5,10 @@ runner.report("funit-test-scenario")
 
 local mock = require("__funit__.mock")
 
+runner.test("Test expand_depdencies.rb", function()
+    runner.assert(script.active_mods["RateCalculator"], "'RateCalculator' Missing!")
+end)
+
 runner.test("Test after_n_ticks_do", function()
     local tick = game.tick
     local nesting_level = 0

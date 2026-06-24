@@ -4,7 +4,7 @@ require 'uri'
 require 'set'
 require 'optparse'
 
-BUILTIN_MODS = Set.new(["base", "quality", "elevated-rails", "space-age"])
+BUILTIN_MODS = Set.new(["base", "quality", "recycler", "elevated-rails", "space-age"])
 
 local_mod = nil
 
@@ -18,7 +18,7 @@ def parse_dependency_name(raw_dep_str)
   return nil if raw_dep_str.nil? 
   dep_str = raw_dep_str.strip
   return nil if dep_str.empty? || dep_str.start_with?("?") || dep_str.start_with?("!") || dep_str.start_with?("(?)")
-  return dep_str.gsub(/[~]/, '').strip.split(/[<>=]+/).first.strip
+  return dep_str.gsub(/[~\+]/, '').strip.split(/[<>=]+/).first.strip
 end
 
 OptionParser.new do |opts|
