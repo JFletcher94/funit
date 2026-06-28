@@ -95,30 +95,34 @@ while !to_fetch.empty?
     enabled_set << mod_name
     fetched << mod_name
 
-    uri = URI("https://mods.factorio.com/api/mods/#{URI.encode_uri_component(mod_name)}/full")
-    begin
-      response = Net::HTTP.get_response(uri)
-      if response.code != "200"
-        puts "Warning: HTTP #{response.code} for #{mod_name}"
-        next
+    deps = nil
+    if File.exist?("#{mod_name}/info.json")
+      deps = JSON.parse(File.read("#{mod_name}/info.json"))["dependencies"] || []
+    else
+      uri = URI("https://mods.factorio.com/api/mods/#{URI.encode_uri_component(mod_name)}/full")
+      begin
+        response = Net::HTTP.get_response(uri)
+        if response.code != "200"
+          puts "Warning: HTTP #{response.code} for #{mod_name}"
+          next
+        end
+
+        mod_data = JSON.parse(response.body)
+        if mod_data["releases"] && !mod_data["releases"].empty?
+          latest = mod_data["releases"].max_by { |r| Gem::Version.new(r["version"]) || "" }
+          deps = latest.dig("info_json", "dependencies") || [] if latest
+        else
+          deps = []
+        end
+      rescue => e
+        puts "Error fetching #{mod_name}: #{e.message}"
       end
+    end
 
-      mod_data = JSON.parse(response.body)
-
-      deps = []
-      if mod_data["releases"] && !mod_data["releases"].empty?
-        latest = mod_data["releases"].max_by { |r| Gem::Version.new(r["version"]) || "" }
-        deps = latest.dig("info_json", "dependencies") || [] if latest
-      end
-
-      deps.each do |dep_str|
-        parsed_dep = parse_dependency_name(dep_str)
-        next if parsed_dep.nil? || parsed_dep.empty? || enabled_set.include?(parsed_dep)
-        new_deps << parsed_dep
-      end
-
-    rescue => e
-      puts "Error fetching #{mod_name}: #{e.message}"
+    deps.each do |dep_str|
+      parsed_dep = parse_dependency_name(dep_str)
+      next if parsed_dep.nil? || parsed_dep.empty? || enabled_set.include?(parsed_dep)
+      new_deps << parsed_dep
     end
   end
   to_fetch = new_deps.reject { |name| local_mod == name or BUILTIN_MODS.include?(name) }.to_a
