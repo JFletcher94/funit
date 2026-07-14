@@ -36,6 +36,10 @@ OptionParser.new do |opts|
     options[:output] = v
   end
 
+  opts.on("-v", "--version STRING", "Factorio version") do |v|
+    options[:version] = v
+  end
+
   opts.on_tail("-h", "--help", "Show this message") do
     puts opts
     exit
@@ -45,6 +49,8 @@ end.parse!
 input_file = options[:mod_list]
 info_file = options[:info_file]
 output_file = options[:output]
+version = options[:version] 
+version = "2.1" if version.nil?
 
 unless File.exist?(input_file)
   puts "Error: Input file '#{input_file}' not found."
@@ -109,11 +115,12 @@ while !to_fetch.empty?
 
         mod_data = JSON.parse(response.body)
         if mod_data["releases"] && !mod_data["releases"].empty?
-          latest = mod_data["releases"].max_by { |r| Gem::Version.new(r["version"]) || "" }
-          deps = latest.dig("info_json", "dependencies") || [] if latest
-        else
-          deps = []
+          latest = mod_data["releases"]
+            .reject { |r| r.dig("info_json", "factorio_version") != version }
+            .max_by { |r| Gem::Version.new(r["version"] || "") }
+          deps = latest.dig("info_json", "dependencies") if latest
         end
+        deps = [] if deps.nil?
       rescue => e
         puts "Error fetching #{mod_name}: #{e.message}"
       end

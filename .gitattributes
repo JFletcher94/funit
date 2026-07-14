@@ -2,3 +2,5 @@ test                    export-ignore
 test/**                 export-ignore
 scenarios/__funit__*    export-ignore
 scenarios/__funit__*/** export-ignore
+scenarios/__skip__*     export-ignore
+scenarios/__skip__*/**  export-ignore

@@ -154,6 +154,7 @@ deploy-job:
   needs:
     - job: build-archive-job
       artifacts: true
+    - job: unit-test-job
     - job: parse-results-job
   before_script:
     - apk add --no-cache jq curl
