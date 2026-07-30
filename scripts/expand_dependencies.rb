@@ -70,10 +70,12 @@ if info_file
     local_mod_info = JSON.parse(File.read(info_file))
     local_mod = local_mod_info["name"]
     enabled_set << local_mod
-    local_mod_info["dependencies"].each do |dep|
-      parsed_dep = parse_dependency_name(dep)
-      next if parsed_dep.nil? || parsed_dep.empty?
-      enabled_set << parsed_dep
+    if local_mod_info["dependencies"]
+      local_mod_info["dependencies"].each do |dep|
+        parsed_dep = parse_dependency_name(dep)
+        next if parsed_dep.nil? || parsed_dep.empty?
+        enabled_set << parsed_dep
+      end
     end
   end
 end
