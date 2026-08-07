@@ -22,6 +22,7 @@ ENV USERNAME=${USERNAME}
 ENV TOKEN=${TOKEN}
 
 COPY "$MOD_NAME"/test/ /
+COPY artifacts/"$MOD_NAME"/test/* /
 
 RUN mkdir -p "$CONFIG"
 RUN mkdir -p "$MODS"
