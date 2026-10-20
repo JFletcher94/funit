@@ -18,7 +18,7 @@ This repo has several features:
     * [GitLab CI pipeline](.gitlab-ci.yml): automatically build, test and deploy your mod(s) with GitLab CI.
     * [Dockerized Factorio server](Dockerfile): run tests on a headless Factorio server in Docker, thanks to [`factorio-docker`](github.com/factoriotools/factorio-docker/).
     * [Configurable test runner](entrypoint.sh): automatically sync mods and mod settings, and run multiple test suites.
-    * (WIP) [GitHub Actions pipeline](.github/workflows/funit.yml): automatically build and test your mod(s) with GitHub Actions (this is a WIP that is less actively maintained, and may not be up to date).
+    * [GitHub Actions pipeline](.github/workflows/funit.yml): automatically build and test your mod(s) in a Factorio job container.
 * Helper scripts:
     * [Expand dependencies](scripts/expand_dependencies.rb): Recursively expands mod dependencies. Recommended dependencies are automatically included, which can be overriden with explicit `enabled: false` in the input mod-list.
     * [Parse FUnit json](scripts/parse_funit_json.rb): Parses FUnit's test report json files and saves results to a JUnit-style XML file.
