@@ -39,6 +39,7 @@ jobs:
         ARCHIVE_NAME="${FOLDER_NAME}.zip"
         echo "Building archive ${ARCHIVE_NAME}"
         mkdir -p artifacts/${MOD_NAME}/scenarios
+        mkdir -p artifacts/${MOD_NAME}/test
         git archive --worktree-attributes --format=zip HEAD:"${MOD_NAME}" -o "artifacts/${MOD_NAME}/${ARCHIVE_NAME}" --prefix="${FOLDER_NAME}/"
         ls -1 "${MOD_NAME}"/test/saves/ 2>/dev/null > "artifacts/${MOD_NAME}/save_names.txt" || true
         ls -1 "${MOD_NAME}"/scenarios/ 2>/dev/null | grep "__funit__" > "artifacts/${MOD_NAME}/scenario_names.txt" || true
@@ -52,7 +53,7 @@ jobs:
           done
         fi
         if [ -s "${MOD_NAME}/test/mod-list.json" ]; then
-          ruby scripts/expand_dependencies.rb -i "${MOD_NAME}/info.json" -m "${MOD_NAME}/test/mod-list.json" -o "${MOD_NAME}/test/mod-list.json"
+          ruby scripts/expand_dependencies.rb -i "${MOD_NAME}/info.json" -m "${MOD_NAME}/test/mod-list.json" -o "artifacts/${MOD_NAME}/test/mod-list.json"
         fi
     - uses: actions/upload-artifact@v4.1.0
       if: success()

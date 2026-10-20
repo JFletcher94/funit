@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.1.0
+  Features:
+    - Simplified and unified logic for CI pipelines.
+  Bugfixes:
+    - Fixed tests hanging when `on_event_do` times out.
+    - Fixed errors during event callbacks not being caught.
+    - Fixed incorrect mocked event filtering.
+---------------------------------------------------------------------------------------------------
 Version: 1.0.0
   Major Features:
     - Factorio 2.1 Upgrade.

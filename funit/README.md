@@ -131,12 +131,12 @@ runner.test(
     function()
         entity.order_deconstruction("player")
         runner.on_event_do(
-            defines.event.on_robot_mined_entity, -- Event type
+            defines.events.on_robot_mined_entity, -- Event type
             function(event) -- Continued test logic
                 runner.assert(event.robot.name == "my-bot", "Wrong robot!")
             end,
-            nil -- (Optional) event filter
-            600 -- (Optional) timeout: fail test if event not raised within this many ticks
+            nil, -- (Optional) event filter
+            600  -- (Optional) timeout: fail test if event not raised within this many ticks
         )
     end
 )
@@ -203,7 +203,7 @@ runner.test(
     "My test",
     function()
         mock.mock_event({
-            name = defines.event.on_player_died, -- Only field required my event mocker
+            name = defines.events.on_player_died, -- Only field required my event mocker
             player_index = 1 -- Fields besides 'name' can have fake values
         })
     end
