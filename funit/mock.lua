@@ -46,7 +46,7 @@ end
 mock.mock_event = function(event_data)
     assert(event_data.name and script.get_event_id(event_data.name), "Invalid event_data: "..serpent.block(event_data))
     for name, interfaces in pairs(remote.interfaces) do
-        if not name:sub(1, #mock.PREFIX) == mock.PREFIX or not interfaces["call_event_handler"] then
+        if name:sub(1, #mock.PREFIX) ~= mock.PREFIX or not interfaces["call_event_handler"] then
             goto continue
         end
 

@@ -15,9 +15,9 @@ concurrency:
   group: "${{ github.ref }}"
   cancel-in-progress: true
 env:
-  FACTORIO_VERSION: stable
+  FACTORIO_VERSION: latest
   MOD_NAME: funit
-  TIMEOUT: 30s
+  TIMEOUT: 60s
   USERNAME: "${{ secrets.USERNAME }}"
   TOKEN: "${{ secrets.TOKEN }}"
 
@@ -27,6 +27,8 @@ jobs:
     container:
       image: ruby:4-alpine
     timeout-minutes: 60
+    outputs:
+      factorio_version: ${{ env.FACTORIO_VERSION }}
     steps:
     - run: apk add --no-cache git jq
     - uses: actions/checkout@v4.1.0
@@ -39,6 +41,7 @@ jobs:
         ARCHIVE_NAME="${FOLDER_NAME}.zip"
         echo "Building archive ${ARCHIVE_NAME}"
         mkdir -p artifacts/${MOD_NAME}/scenarios
+        mkdir -p artifacts/${MOD_NAME}/test
         git archive --worktree-attributes --format=zip HEAD:"${MOD_NAME}" -o "artifacts/${MOD_NAME}/${ARCHIVE_NAME}" --prefix="${FOLDER_NAME}/"
         ls -1 "${MOD_NAME}"/test/saves/ 2>/dev/null > "artifacts/${MOD_NAME}/save_names.txt" || true
         ls -1 "${MOD_NAME}"/scenarios/ 2>/dev/null | grep "__funit__" > "artifacts/${MOD_NAME}/scenario_names.txt" || true
@@ -52,7 +55,7 @@ jobs:
           done
         fi
         if [ -s "${MOD_NAME}/test/mod-list.json" ]; then
-          ruby scripts/expand_dependencies.rb -i "${MOD_NAME}/info.json" -m "${MOD_NAME}/test/mod-list.json" -o "${MOD_NAME}/test/mod-list.json"
+          ruby scripts/expand_dependencies.rb -i "${MOD_NAME}/info.json" -m "${MOD_NAME}/test/mod-list.json" -o "artifacts/${MOD_NAME}/test/mod-list.json"
         fi
     - uses: actions/upload-artifact@v4.1.0
       if: success()
@@ -65,13 +68,18 @@ jobs:
     needs: build-archive-job
     runs-on: ubuntu-latest
     container:
-      image: docker:stable
+      image: "factoriotools/factorio:${{ needs.build-archive-job.outputs.factorio_version }}"
     timeout-minutes: 15
-    services:
-      docker:dind:
-        image: docker:dind
+    env:
+      UPDATE_MODS_ON_START: "true"
+    defaults:
+      run:
+        shell: bash
     steps:
-    - run: apk add --no-cache git bash
+    - name: Install Git
+      run: |
+        apt-get update
+        apt-get install -y --no-install-recommends git
     - uses: actions/checkout@v4.1.0
       with:
         fetch-depth: 20
@@ -79,29 +87,20 @@ jobs:
       with:
         name: build-archive-job
         path: artifacts
-    - run: |
-        docker build \
-            --build-arg FACTORIO_VERSION=$FACTORIO_VERSION \
-            --build-arg USERNAME="${USERNAME}" \
-            --build-arg TOKEN="${TOKEN}" \
-            --build-arg MOD_NAME="${MOD_NAME}" \
-            -t funit-factorio-image \
-            .
-        mkdir -p test_artifacts/${MOD_NAME}
-        set +e
-        bash -c '
-          docker run --rm \
-              -e MOD_NAME=${MOD_NAME} \
-              -e USERNAME="${USERNAME}" \
-              -e TOKEN="${TOKEN}" \
-              -e TIMEOUT=${TIMEOUT} \
-              funit-factorio-image \
-            2>&1 | tee test_artifacts/${MOD_NAME}/funit.log
-          exit ${PIPESTATUS[0]}
-        '
-        EXIT_CODE=$?
-        set -e
-        exit $EXIT_CODE
+    - name: Prepare test environment
+      run: bash scripts/prepare_test_environment.sh
+    - name: Run tests
+      run: |
+        mkdir -p "test_artifacts/${MOD_NAME}"
+        (cd / && bash "$GITHUB_WORKSPACE/entrypoint.sh") \
+          2>&1 | tee "$GITHUB_WORKSPACE/test_artifacts/${MOD_NAME}/funit.log"
+    - name: Collect JSON reports
+      if: always()
+      run: |
+        mkdir -p "test_artifacts/${MOD_NAME}/reports"
+        if [ -d /factorio/script-output ]; then
+          cp -a /factorio/script-output/. "test_artifacts/${MOD_NAME}/reports/"
+        fi
     - uses: actions/upload-artifact@v4.1.0
       if: always()
       with:
@@ -111,6 +110,7 @@ jobs:
   
   parse-results-job:
     needs: unit-test-job
+    if: ${{ !cancelled() && needs.unit-test-job.result != 'skipped' }}
     runs-on: ubuntu-latest
     container:
       image: ruby:4-alpine
@@ -125,7 +125,7 @@ jobs:
         name: unit-test-job
         path: test_artifacts
     # - run: wget https://gitlab.com/jfletcher94/funit/-/raw/master/scripts/parse_funit_log.rb
-    - run: ruby scripts/parse_funit_log.rb test_artifacts/${MOD_NAME}/funit.log funit-report-${MOD_NAME}.xml
+    - run: ruby scripts/parse_funit_json.rb test_artifacts/${MOD_NAME}/reports -o funit-report-${MOD_NAME}.xml
     - uses: actions/upload-artifact@v4.1.0
       if: always()
       with:
