@@ -82,12 +82,17 @@ end
 
 data = JSON.parse(File.read(input_file))
 mods_array = data["mods"] || []
+disabled_set = Set.new
 
 mods_array.each do |mod_entry|
   if mod_entry["enabled"] == true || mod_entry["enabled"].to_s.downcase == "true"
     parsed_mod = parse_dependency_name(mod_entry["name"])
     next if parsed_mod.nil? || parsed_mod.empty?
     enabled_set << parsed_mod
+  elsif mod_entry["enabled"] == false || mod_entry["enabled"].to_s.downcase == "false"
+    parsed_mod = parse_dependency_name(mod_entry["name"])
+    next if parsed_mod.nil? || parsed_mod.empty?
+    disabled_set << parsed_mod
   end
 end
 
@@ -111,20 +116,17 @@ while !to_fetch.empty?
       begin
         response = Net::HTTP.get_response(uri)
         if response.code != "200"
-          puts "Warning: HTTP #{response.code} for #{mod_name}"
-          next
+          abort "Error fetching #{mod_name}: HTTP #{response.code}"
         end
 
         mod_data = JSON.parse(response.body)
-        if mod_data["releases"] && !mod_data["releases"].empty?
-          latest = mod_data["releases"]
-            .reject { |r| r.dig("info_json", "factorio_version") != version }
-            .max_by { |r| Gem::Version.new(r["version"] || "") }
-          deps = latest.dig("info_json", "dependencies") if latest
-        end
-        deps = [] if deps.nil?
+        latest = (mod_data["releases"] || [])
+          .reject { |r| r.dig("info_json", "factorio_version") != version }
+          .max_by { |r| Gem::Version.new(r["version"] || "") }
+        abort "Error fetching #{mod_name}: No release compatible with Factorio #{version}" unless latest
+        deps = latest.dig("info_json", "dependencies") || []
       rescue => e
-        puts "Error fetching #{mod_name}: #{e.message}"
+        abort "Error fetching #{mod_name}: #{e.message}"
       end
     end
 
@@ -143,7 +145,9 @@ if enabled_set.include?("space-age")
 end
 
 final_mods = []
-enabled_set.each { |name| final_mods << { "name" => name, "enabled" => true } }
+(enabled_set | disabled_set).each do |name|
+  final_mods << { "name" => name, "enabled" => !disabled_set.include?(name) }
+end
 
 if output_file
   File.write(output_file, JSON.pretty_generate({ "mods" => final_mods }))

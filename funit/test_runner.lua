@@ -59,8 +59,10 @@ end
 --- @param name string Unique name for the test
 --- @param test fun() The test function to execute
 runner.test = function(name, test)
+    if not runner._tests[name] then
+        table.insert(runner._test_names, name)
+    end
     runner._tests[name] = test
-    table.insert(runner._test_names, name)
 end
 
 --- Schedule an action to run after a certain number of ticks.
@@ -96,7 +98,7 @@ runner.on_event_do = function(event, action, filters, timeout_ticks)
     script.on_event(event, function(event_data)
         runner._registered_events[event_id] = nil
         script.on_event(event, nil)
-        runner._run_and_verify(action(event_data), runner._test_names[runner._test_idx].." ("..event_id..")")
+        runner._run_and_verify(function() action(event_data) end, runner._test_names[runner._test_idx].." ("..event_id..")")
     end, filters)
 end
 
@@ -231,6 +233,7 @@ runner._check_for_timeout = function()
             return
         end
     end
+    runner._run_next_test()
 end
 
 --- Safely execute a function and handle success/failure.
@@ -268,10 +271,10 @@ runner._run_and_verify = function(func, message)
     runner._registered_events = {}
     if not err then
         runner._fail(message)
-    elseif err.is_test_runner_assert then
+    elseif type(err) == "table" and err.is_test_runner_assert then
         runner._fail(message.."__: "..err.message)
     else
-        runner._error(message.."__: "..err)
+        runner._error(message.."__: "..tostring(err))
     end
 end
 

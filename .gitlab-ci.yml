@@ -10,8 +10,6 @@ variables:
   FACTORIO_VERSION: latest
   MOD_NAME: funit
   TIMEOUT: 60s
-  IMAGE_NAME: $CI_REGISTRY/$CI_PROJECT_PATH/factorio-image
-  IMAGE_TAG: $FACTORIO_VERSION-$CI_COMMIT_REF_NAME
 
 workflow:
   rules:
@@ -65,39 +63,28 @@ build-archive-job:
 
 unit-test-job:
   stage: test
-  image: docker:stable
-  services:
-    - docker:dind
+  image:
+    name: "factoriotools/factorio:${FACTORIO_VERSION}"
+    entrypoint: [""]
+  variables:
+    UPDATE_MODS_ON_START: "true"
   needs:
     - job: build-archive-job
       artifacts: true
   before_script:
-    - apk add --no-cache bash
+    - bash scripts/prepare_test_environment.sh
   script:
     - |
-      docker build \
-          --build-arg FACTORIO_VERSION=$FACTORIO_VERSION \
-          --build-arg USERNAME="${USERNAME}" \
-          --build-arg TOKEN="${TOKEN}" \
-          --build-arg MOD_NAME="${MOD_NAME}" \
-          -t $IMAGE_NAME:$IMAGE_TAG-${MOD_NAME} \
-          .
-      mkdir -p artifacts/${MOD_NAME}/reports
-      set +e
-      bash -c '
-        docker run --rm \
-            -e MOD_NAME=${MOD_NAME} \
-            -e USERNAME="${USERNAME}" \
-            -e TOKEN="${TOKEN}" \
-            -e TIMEOUT=${TIMEOUT} \
-            -v ${PWD}/artifacts/${MOD_NAME}/reports:/opt/factorio/script-output \
-            $IMAGE_NAME:$IMAGE_TAG-${MOD_NAME} \
-          2>&1 | tee artifacts/${MOD_NAME}/funit.log
-        exit ${PIPESTATUS[0]}
+      bash -o pipefail -c '
+        (cd / && bash "$CI_PROJECT_DIR/entrypoint.sh") \
+          2>&1 | tee "$CI_PROJECT_DIR/artifacts/${MOD_NAME}/funit.log"
       '
-      EXIT_CODE=$?
-      set -e
-      exit $EXIT_CODE
+  after_script:
+    - |
+      mkdir -p "artifacts/${MOD_NAME}/reports"
+      if [ -d /factorio/script-output ]; then
+        cp -a /factorio/script-output/. "artifacts/${MOD_NAME}/reports/"
+      fi
   timeout: 15m
   artifacts:
     when: always

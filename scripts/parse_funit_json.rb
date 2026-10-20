@@ -38,6 +38,20 @@ doc << testsuites
 json_files.each do |file|
   begin
     suite_data = JSON.parse(File.read(file))
+    unless suite_data.is_a?(Hash) && suite_data['testcases'].is_a?(Array) &&
+           suite_data['testcases'].all? { |tc| tc.is_a?(Hash) && tc['name'].is_a?(String) }
+      raise ArgumentError, 'Expected a suite containing an array of named testcases'
+    end
+
+    {
+      'tests' => suite_data['testcases'].size,
+      'failures' => suite_data['testcases'].count { |tc| tc['failure'] && !tc['error'] },
+      'errors' => suite_data['testcases'].count { |tc| tc['error'] }
+    }.each do |field, expected|
+      unless suite_data[field].is_a?(Integer) && suite_data[field] == expected
+        raise ArgumentError, "#{field} must match testcase count (expected #{expected})"
+      end
+    end
 
     testsuite = REXML::Element.new('testsuite')
     testsuite.add_attribute('name',      suite_data['name'] || File.basename(file, '.json'))
@@ -70,8 +84,9 @@ json_files.each do |file|
       testsuite << testcase
     end
     testsuites << testsuite
-  rescue JSON::ParserError => e
-    warn "Warning: Could not parse #{file} — #{e.message}"
+  rescue JSON::ParserError, ArgumentError => e
+    fail_job = true
+    warn "Error: Invalid report #{file} — #{e.message}"
   end
 end
 
